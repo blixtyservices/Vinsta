@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,15 @@ import {
   ScrollView,
   Dimensions,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getFontFamily, getFontWeight } from '../../../utils/fontHelper';
 import MyOrdersTab from './MyOrdersTab';
 import MySubscription from './MySubscription';
 import RatingModal from './RatingModal';
-import { ThemeContext } from '../../../theme/ThemeContext';   // ✅ ADD THIS
+import { ThemeContext } from '../../../theme/ThemeContext';
+import { ordersAPI, subscriptionAPI } from '../../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -22,9 +24,41 @@ const COLORS = {
   primary: '#E67E22',
 };
 
+const ACTIVE_STATUSES = ['pending', 'confirmed', 'preparing', 'out_for_delivery'];
+const FALLBACK_IMG = require('../../../assets/poha.png');
+
+const mapOrder = (o: any) => ({
+  id: `#${o._id?.slice(-6).toUpperCase() || '------'}`,
+  _id: o._id,
+  title: o.restaurant?.name || o.items?.[0]?.name || 'Order',
+  price: o.totalAmount || 0,
+  date: o.createdAt
+    ? new Date(o.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : '--',
+  items: `${o.items?.length || 1} Item${(o.items?.length || 1) > 1 ? 's' : ''}`,
+  status: o.status || 'pending',
+  time: o.estimatedDeliveryTime || '25 min',
+  img: o.restaurant?.imageUrl ? { uri: o.restaurant.imageUrl } : FALLBACK_IMG,
+});
+
+const mapSub = (s: any, isActive: boolean, theme: any) => ({
+  id: s._id,
+  title: s.planId?.name || 'Subscription Plan',
+  restaurant: s.restaurantId?.name || 'Restaurant',
+  price: `₹${s.planId?.price || 0} / ${s.planId?.duration || 'week'}`,
+  duration: s.startDate && s.endDate
+    ? `${new Date(s.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} - ${new Date(s.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`
+    : '--',
+  daysLeft: isActive && s.endDate
+    ? `${Math.max(0, Math.ceil((new Date(s.endDate).getTime() - Date.now()) / 86400000))} Day's left`
+    : "0 Day's left",
+  img: FALLBACK_IMG,
+  tintColor: theme.text,
+});
+
 const MyOrders = () => {
   const navigation = useNavigation<any>();
-  const { theme } = useContext(ThemeContext);   // ✅ DARK MODE THEME CONTEXT
+  const { theme } = useContext(ThemeContext);
 
   const [mainTab, setMainTab] = useState<'Orders' | 'Subscription'>('Orders');
   const [orderTab, setOrderTab] = useState<'Upcoming' | 'Past'>('Upcoming');
@@ -32,80 +66,41 @@ const MyOrders = () => {
   const [ratingModal, setRatingModal] = useState(false);
   const [selectedStars, setSelectedStars] = useState(0);
   const [reviewText, setReviewText] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const upcomingOrders = [
-    {
-      id: '#265896',
-      title: 'Masala Poha',
-      price: 50.0,
-      date: '22 Sep, 9.00',
-      items: '3 Items',
-      status: 'Food on the way',
-      time: '25 min',
-      img: require('../../../assets/poha.png'),
+  const [upcomingOrders, setUpcomingOrders] = useState<any[]>([]);
+  const [pastOrders, setPastOrders] = useState<any[]>([]);
+  const [activeSubs, setActiveSubs] = useState<any[]>([]);
+  const [previousSubs, setPreviousSubs] = useState<any[]>([]);
 
-    },
-  ];
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const res = await ordersAPI.getAll();
+        const all = res.orders || [];
+        setUpcomingOrders(
+          all.filter((o: any) => ACTIVE_STATUSES.includes(o.status)).map(mapOrder)
+        );
+        setPastOrders(
+          all.filter((o: any) => !ACTIVE_STATUSES.includes(o.status)).map(mapOrder)
+        );
+      } catch {}
 
-  const pastOrders = [
-    {
-      id: '#265896',
-      title: 'Masala Poha',
-      price: 50.0,
-      date: '22 Sep, 9.00',
-      items: '3 Items',
-      status: 'Delivered',
-      img: require('../../../assets/poha.png'),
+      try {
+        const subRes = await subscriptionAPI.getMine();
+        const allSubs = subRes.subscriptions || [];
+        setActiveSubs(
+          allSubs.filter((s: any) => s.status === 'active').map((s: any) => mapSub(s, true, theme))
+        );
+        setPreviousSubs(
+          allSubs.filter((s: any) => s.status !== 'active').map((s: any) => mapSub(s, false, theme))
+        );
+      } catch {}
 
-    },
-    {
-      id: '#265897',
-      title: 'Masala Poha',
-      price: 50.0,
-      date: '22 Sep, 9.00',
-      items: '3 Items',
-      status: 'Delivered',
-      img: require('../../../assets/poha.png'),
-
-
-    },
-  ];
-
-  const activeSubs = [
-    {
-      id: 1,
-      title: 'Weekly Plan',
-      restaurant: 'Bistro Excellence',
-      price: '₹400 / week',
-      duration: '22 - 29 Sep 2025',
-      daysLeft: "6 Day's left",
-      img: require('../../../assets/thali.png'),
-      tintColor: theme.text,
-    },
-    {
-      id: 2,
-      title: 'Monthly Plan',
-      restaurant: 'Bistro Excellence',
-      price: '₹4900 / month',
-      duration: '22 Sep - 21 Oct 2025',
-      daysLeft: "21 Day's left",
-      img: require('../../../assets/thali.png'),
-      tintColor: theme.text,
-    },
-  ];
-
-  const previousSubs = [
-    {
-      id: 1,
-      title: 'Weekly Plan',
-      restaurant: 'Bistro Excellence',
-      price: '₹400 / week',
-      duration: '22 - 29 Sep 2025',
-      daysLeft: "0 Day's left",
-      img: require('../../../assets/poha.png'),
-      tintColor: theme.text,
-    },
-  ];
+      setLoading(false);
+    };
+    loadOrders();
+  }, []);
 
   const handleStarPress = (index: number) => setSelectedStars(index);
   const handleSubmitReview = () => {

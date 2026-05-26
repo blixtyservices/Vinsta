@@ -11,6 +11,7 @@ import {
   StatusBar,
   Animated,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS } from '../../../../theme/colors';
@@ -28,6 +29,8 @@ import FoodDetailModal from './FoodDetailModal';
 import VegNonVegModal from './VegNonVegModal';
 import RestuarantBadge from './RestuarantBadge';
 import FilterTags from './FilterTags';
+import { menuAPI } from '../../../../services/api';
+import { useCart } from '../../../../context/CartContext';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
@@ -58,7 +61,11 @@ const RestaurentDetails: React.FC = () => {
   const { theme, isDarkMode } = useContext(ThemeContext);
   const isDark = theme.mode === 'dark';
   const route = useRoute<any>();
+  const { addItem } = useCart();
 
+  const restaurant = route.params?.restaurant || {};
+  const restaurantId = restaurant._id || restaurant.id || '';
+  const restaurantName = restaurant.name || 'Restaurant';
   const selectedItem = route.params?.selectedItem || 'Burger';
   const initialFoodType = route.params?.foodType || 'Veg';
 
@@ -74,9 +81,9 @@ const RestaurentDetails: React.FC = () => {
   );
   const [vegNonVegDropdownVisible, setVegNonVegDropdownVisible] =
     useState(false);
-
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [menuLoading, setMenuLoading] = useState(false);
 
   // Heart Icon in header state for liked toggle
   const [headerLiked, setHeaderLiked] = useState(false);
@@ -89,58 +96,34 @@ const RestaurentDetails: React.FC = () => {
   const [quantity, setQuantity] = useState<number>(1);
   const [cookingRequest, setCookingRequest] = useState<string>('');
 
-  const vegFoodItems: FoodItem[] = [
-    {
-      id: 1,
-      name: 'Spicy Paneer Burger',
-      price: 250.0,
-      oldPrice: 280.0,
-      time: '10-15 mins',
-      img: require('../../../../assets/b1.png'),
-      description:
-        'A flavorful burger with a spiced paneer patty, fresh veggies, and creamy mint mayo in a toasted bun. Perfect for those craving a hearty.',
-      restaurant: 'Foodicated Cafe',
-      isVeg: true,
-    },
-    {
-      id: 2,
-      name: 'Veg Delight',
-      price: 45.5,
-      oldPrice: 50.0,
-      time: '10-15 mins',
-      img: require('../../../../assets/b2.png'),
-      description:
-        'A flavorful burger with a spiced paneer patty, fresh veggies, and creamy mint mayo in a toasted bun. Perfect for those craving a hearty.',
-      restaurant: 'Foodicated Cafe',
-      isVeg: true,
-    },
-    {
-      id: 3,
-      name: 'Paneer Wrap',
-      price: 45.5,
-      oldPrice: 50.0,
-      time: '10-15 mins',
-      img: require('../../../../assets/b3.png'),
-      description:
-        'A flavorful burger with a spiced paneer patty, fresh veggies, and creamy mint mayo in a toasted bun. Perfect for those craving a hearty.',
-      restaurant: 'Foodicated Cafe',
-      isVeg: true,
-    },
-    {
-      id: 4,
-      name: 'Veg Pizza',
-      price: 45.5,
-      oldPrice: 50.0,
-      time: '10-15 mins',
-      img: require('../../../../assets/b1.png'),
-      description:
-        'A flavorful burger with a spiced paneer patty, fresh veggies, and creamy mint mayo in a toasted bun. Perfect for those craving a hearty.',
-      restaurant: 'Foodicated Cafe',
-      isVeg: true,
-    },
-  ];
+  // Menu from API
+  const [vegFoodItems, setVegFoodItems] = useState<FoodItem[]>([]);
+  const [nonVegFoodItems, setNonVegFoodItems] = useState<FoodItem[]>([]);
 
-  const nonVegFoodItems: FoodItem[] = [];
+  useEffect(() => {
+    if (!restaurantId) return;
+    setMenuLoading(true);
+    menuAPI.getMenu(restaurantId)
+      .then((res: any) => {
+        const items: FoodItem[] = (res.menu || []).map((m: any) => ({
+          id: m._id,
+          name: m.name,
+          price: m.price,
+          oldPrice: m.originalPrice || m.price,
+          time: m.preparationTime || '10-15 mins',
+          img: m.imageUrl ? { uri: m.imageUrl } : require('../../../../assets/b1.png'),
+          description: m.description || '',
+          restaurant: restaurantName,
+          isVeg: !!m.isVeg,
+        }));
+        setVegFoodItems(items.filter(i => i.isVeg));
+        setNonVegFoodItems(items.filter(i => !i.isVeg));
+      })
+      .catch(() => {
+        // API not ready — keep empty arrays
+      })
+      .finally(() => setMenuLoading(false));
+  }, [restaurantId]);
 
   const foodItems = vegNonVegFilter === 'Veg' ? vegFoodItems : nonVegFoodItems;
 
@@ -231,13 +214,20 @@ const RestaurentDetails: React.FC = () => {
 
   const handleAddToCart = () => {
     if (selectedFood) {
-      console.log('Added to cart:', {
-        food: selectedFood,
-        cheese: selectedCheese,
-        quantity,
-        cookingRequest,
-      });
-      setAddedItems(prev => [...prev, selectedFood.id]);
+      addItem(
+        {
+          menuItemId: String(selectedFood.id),
+          name: selectedFood.name,
+          price: selectedFood.price,
+          quantity: quantity,
+          isVeg: !!selectedFood.isVeg,
+          description: selectedFood.description,
+          specialInstructions: cookingRequest || undefined,
+        },
+        restaurantId,
+        restaurantName,
+      );
+      setAddedItems(prev => [...prev, selectedFood.id as number]);
       setFoodModalVisible(false);
     }
   };
@@ -519,8 +509,14 @@ const RestaurentDetails: React.FC = () => {
           })}
         </ScrollView>
 
-        {/* Show content only if items are available */}
-        {foodItems.length > 0 ? (
+        {/* Menu loading / content */}
+        {menuLoading ? (
+          <ActivityIndicator
+            size="large"
+            color={COLORS.primary}
+            style={{ marginTop: hp('10%') }}
+          />
+        ) : foodItems.length > 0 ? (
           <>
             {/* ===== FILTER TAGS ===== */}
             <FilterTags

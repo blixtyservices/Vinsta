@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,112 +10,91 @@ import {
   StatusBar,
   TextInput,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../../../theme/colors';
 import { ThemeContext } from '../../../theme/ThemeContext';
 import { getFontFamily, getFontWeight } from '../../../utils/fontHelper';
+import { walletAPI } from '../../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
-const transactions = [
-  {
-    id: 1,
-    title: 'Masala Poha',
-    time: '22 Sep, 9.00 • 3 Items',
-    amount: '₹ 50.00',
-    type: 'Orders',
-    icon: require('../../../assets/b1.png'),
-    arrow: require('../../../assets/up1.png'),
-  },
-  {
-    id: 2,
-    title: 'Top up wallet',
-    time: '22 Sep, 9.00',
-    amount: '₹ 50.00',
-    type: 'Top Up',
-    icon: require('../../../assets/b2.png'),
-    arrow: require('../../../assets/down1.png'),
-  },
-  {
-    id: 3,
-    title: 'Masala Poha',
-    time: '22 Sep, 9.00 • 3 Items',
-    amount: '₹ 50.00',
-    type: 'Orders',
-    icon: require('../../../assets/b3.png'),
-    arrow: require('../../../assets/up1.png'),
-  },
-  {
-    id: 4,
-    title: 'Masala Poha',
-    time: '22 Sep, 9.00 • 3 Items',
-    amount: '₹ 50.00',
-    type: 'Orders',
-    icon: require('../../../assets/r1.png'),
-    arrow: require('../../../assets/up1.png'),
-  },
-  {
-    id: 5,
-    title: 'Masala Poha',
-    time: '22 Sep, 9.00 • 3 Items',
-    amount: '₹ 50.00',
-    type: 'Orders',
-    icon: require('../../../assets/r2.png'),
-    arrow: require('../../../assets/up1.png'),
-  },
-  {
-    id: 6,
-    title: 'Masala Poha',
-    time: '22 Sep, 9.00 • 3 Items',
-    amount: '₹ 50.00',
-    type: 'Orders',
-    icon: require('../../../assets/r3.png'),
-    arrow: require('../../../assets/up1.png'),
-  },
-];
+const DEBIT_ICON = require('../../../assets/up1.png');
+const CREDIT_ICON = require('../../../assets/down1.png');
+const FOOD_ICON = require('../../../assets/b1.png');
+
+const mapTransaction = (t: any) => ({
+  id: t._id,
+  title: t.description || (t.type === 'credit' ? 'Top up wallet' : 'Order payment'),
+  time: t.createdAt
+    ? new Date(t.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : '--',
+  amount: `₹ ${Number(t.amount).toFixed(2)}`,
+  type: t.type === 'credit' ? 'Top Up' : 'Orders',
+  icon: FOOD_ICON,
+  arrow: t.type === 'credit' ? CREDIT_ICON : DEBIT_ICON,
+  rawType: t.type,
+});
 
 const Wallet = () => {
   const navigation = useNavigation<any>();
   const [showSearch, setShowSearch] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [filterType, setFilterType] = useState<string | null>(null);
-  const [filteredTransactions, setFilteredTransactions] = useState(transactions);
+  const [allTransactions, setAllTransactions] = useState<any[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [walletUser, setWalletUser] = useState<string>('');
+  const [walletLoading, setWalletLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [walletRes, txRes] = await Promise.all([
+          walletAPI.get(),
+          walletAPI.getTransactions(),
+        ]);
+        setWalletBalance(walletRes.balance ?? 0);
+        setWalletUser(walletRes.user?.name || '');
+        const mapped = (txRes.transactions || []).map(mapTransaction);
+        setAllTransactions(mapped);
+        setFilteredTransactions(mapped);
+      } catch {
+        // Keep zeros
+      } finally {
+        setWalletLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   const handleFilterPress = (type: string) => {
-    console.log('Selected filter:', type);
     setFilterType(type);
-    
-    let filtered = [...transactions];
-    
+    let filtered = [...allTransactions];
     switch (type) {
       case 'Older':
-        // Sort by date (assuming older first)
-        filtered.sort((a, b) => a.id - b.id);
+        filtered.sort((a, b) => a.id < b.id ? -1 : 1);
         break;
       case 'Latest':
-        // Sort by date (assuming latest first)
-        filtered.sort((a, b) => b.id - a.id);
+        filtered.sort((a, b) => a.id > b.id ? -1 : 1);
         break;
       case 'Credit':
-        // Filter only credit transactions (down arrow)
-        filtered = transactions.filter(item => item.arrow === require('../../../assets/down1.png'));
+        filtered = allTransactions.filter(item => item.rawType === 'credit');
         break;
       case 'Debit':
-        // Filter only debit transactions (up arrow)
-        filtered = transactions.filter(item => item.arrow === require('../../../assets/up1.png'));
+        filtered = allTransactions.filter(item => item.rawType === 'debit');
         break;
       default:
-        filtered = transactions;
+        filtered = allTransactions;
     }
-    
     setFilteredTransactions(filtered);
     setShowOptions(false);
   };
 
   const clearFilter = () => {
     setFilterType(null);
-    setFilteredTransactions(transactions);
+    setFilteredTransactions(allTransactions);
   };
 
   const {theme} = useContext(ThemeContext);
@@ -184,13 +163,15 @@ const Wallet = () => {
           <View style={styles.cardOverlay} />
 
           <View style={styles.cardContent}>
-            <Text style={[styles.cardName,{color : theme.background}]}>Harshal Sharma</Text>
-            <Text style={[styles.cardNumber,{color : theme.background}]}>1234567890</Text>
+            <Text style={[styles.cardName,{color : theme.background}]}>{walletUser || 'Your Wallet'}</Text>
+            <Text style={[styles.cardNumber,{color : theme.background}]}>VINSTA WALLET</Text>
             <Text style={[styles.balanceLabel,{color : theme.background}]}>Your balance</Text>
 
             {/* Row for balance + top up */}
             <View style={styles.balanceRow}>
-              <Text style={[styles.balanceAmount,{color : theme.background}]}>₹ 9,379</Text>
+              <Text style={[styles.balanceAmount,{color : theme.background}]}>
+                {walletLoading ? '...' : `₹ ${walletBalance.toLocaleString('en-IN')}`}
+              </Text>
               <TouchableOpacity
                 style={[styles.topUpBtn,{backgroundColor : theme.background}]}
                 onPress={() => navigation.navigate('TopUp')}>

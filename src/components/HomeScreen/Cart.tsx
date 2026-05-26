@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,14 @@ import {
   TextInput,
   Platform,
   Modal,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../../theme/ThemeContext';
 import { COLORS } from '../../theme/colors';
+import { useCart } from '../../context/CartContext';
+import { ordersAPI, authAPI } from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -79,35 +83,22 @@ const CartScreen = () => {
   const navigation = useNavigation<any>();
   const { theme } = useContext(ThemeContext);
   const isDarkMode = theme.mode === 'dark';
+  const { items: cartItems, restaurantId, restaurantName, updateQuantity: ctxUpdateQty, removeItem: ctxRemoveItem, clearCart, totalAmount } = useCart();
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [savedAddress, setSavedAddress] = useState<any>(null);
 
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: 'Cheese Volcano Farmhouse',
-      description:
-        'Cheese Volcano Crust, Regular Plus with extra cheese, olives, and capsicum',
-      price: 299,
-      quantity: 1,
-      isVeg: true,
-    },
-    {
-      id: 2,
-      name: 'Veggie Supreme Pizza',
-      description: 'Loaded with fresh vegetables, cheese, and special sauce',
-      price: 350,
-      quantity: 1,
-      isVeg: true,
-    },
-    {
-      id: 3,
-      name: 'Pepperoni Pizza',
-      description:
-        'Cheese Burst, Medium Size with double pepperoni and extra sauce',
-      price: 450,
-      quantity: 1,
-      isVeg: false,
-    },
-  ]);
+  // Load saved address from profile
+  useEffect(() => {
+    authAPI.getMe()
+      .then((res: any) => {
+        const addrs = res.user?.addresses || [];
+        if (addrs.length > 0) {
+          const def = addrs.find((a: any) => a.isDefault) || addrs[0];
+          setSavedAddress(def);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const [selectedAddress, setSelectedAddress] = useState({
     label: 'Home',
@@ -131,39 +122,24 @@ const CartScreen = () => {
     name: string;
   }>(null);
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
-
+  const subtotal = totalAmount;
   const deliveryCharge = 50;
-  const taxAndCharges = 52;
+  const taxAndCharges = Math.round(subtotal * 0.05);
   const couponDiscount = couponApplied ? 50 : 0;
   const total = subtotal + deliveryCharge + taxAndCharges - couponDiscount;
 
-  const updateQuantity = (id: number, increase: boolean) => {
-    setCartItems(prev =>
-      prev.map(item =>
-        item.id === id
-          ? {
-              ...item,
-              quantity: increase
-                ? item.quantity + 1
-                : Math.max(1, item.quantity - 1),
-            }
-          : item,
-      ),
-    );
+  const updateQuantity = (id: any, increase: boolean) => {
+    ctxUpdateQty(String(id), increase ? 1 : -1);
   };
 
-  const askRemoveItem = (id: number, name: string) => {
+  const askRemoveItem = (id: any, name: string) => {
     setItemToDelete({ id, name });
     setDeleteModalVisible(true);
   };
 
   const confirmRemoveItem = () => {
     if (itemToDelete) {
-      setCartItems(prev => prev.filter(item => item.id !== itemToDelete.id));
+      ctxRemoveItem(String(itemToDelete.id));
     }
     setDeleteModalVisible(false);
     setItemToDelete(null);
@@ -182,12 +158,34 @@ const CartScreen = () => {
     setCutleryNeeded(!cutleryNeeded);
   };
 
-  const handleCheckout = () => {
-    navigation.navigate('Payment', {
-      totalAmount: total,
-      couponDiscount,
-      deliveryCharge,
-    });
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) return;
+    const deliveryAddr = savedAddress || {
+      label: selectedAddress.label,
+      address: selectedAddress.address,
+    };
+    try {
+      setPlacingOrder(true);
+      const res = await ordersAPI.place({
+        restaurantId: restaurantId!,
+        items: cartItems.map(i => ({
+          menuItem: i.menuItemId,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+          specialInstructions: i.specialInstructions,
+        })),
+        deliveryAddress: deliveryAddr,
+        paymentMethod: 'cod',
+        specialInstructions: cookingInstruction || undefined,
+      });
+      clearCart();
+      navigation.navigate('PaymentSuccess', { orderId: res.order?._id });
+    } catch (err: any) {
+      Alert.alert('Order Failed', err.message || 'Could not place order. Try again.');
+    } finally {
+      setPlacingOrder(false);
+    }
   };
 
   const renderVegNonVegIcon = (isVeg: boolean) => {
@@ -611,9 +609,14 @@ const CartScreen = () => {
 
           <TouchableOpacity
             onPress={handleCheckout}
-            style={[styles.payButton, { backgroundColor: COLORS.primary }]}
+            disabled={placingOrder || cartItems.length === 0}
+            style={[styles.payButton, { backgroundColor: COLORS.primary, opacity: placingOrder || cartItems.length === 0 ? 0.6 : 1 }]}
           >
-            <Text style={styles.payButtonText}>Pay ₹{total}</Text>
+            {placingOrder ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.payButtonText}>Pay ₹{total}</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

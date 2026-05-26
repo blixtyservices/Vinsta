@@ -31,6 +31,8 @@ import SearchModal from './SearchModal';
 import { ThemeContext } from '../../../theme/ThemeContext';
 import { vibrate } from '../../../utils/vibrationHelper';
 import ViewCartCard from './ViewCartCard';
+import { restaurantAPI } from '../../../services/api';
+import { useCart } from '../../../context/CartContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -211,6 +213,21 @@ const nonVegProducts = [
   },
 ];
 
+// Fallback placeholder restaurant for initial renders
+const PLACEHOLDER_IMG = require('../../../assets/featuredrestaurant.png');
+
+const mapRestaurant = (r: any) => ({
+  id: r._id,
+  _id: r._id,
+  name: r.name,
+  img: r.imageUrl ? { uri: r.imageUrl } : PLACEHOLDER_IMG,
+  rating: r.averageRating ?? 4.0,
+  deliveryTime: r.estimatedDeliveryTime || '15-20 mins',
+  tags: r.categories || [],
+  isFavorite: false,
+  isVeg: !!r.isVeg,
+});
+
 const HomeScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState('Burger');
   const navigation = useNavigation();
@@ -219,53 +236,31 @@ const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isVegMode, setIsVegMode] = useState(true);
   const { theme } = useContext(ThemeContext);
+  const { totalItems, totalAmount } = useCart();
   const [vegProductsState, setVegProductsState] = useState(vegProducts);
   const [nonVegProductsState, setNonVegProductsState] =
     useState(nonVegProducts);
-  const [vegRestaurantsState, setVegRestaurantsState] = useState([
-    {
-      id: 1,
-      name: 'Bistro Excellence',
-      img: require('../../../assets/featuredrestaurant.png'),
-      rating: 4.4,
-      deliveryTime: '10-15 mins',
-      tags: ['Burger', 'Chicken', 'FastFood'],
-      isFavorite: false,
-    },
-    {
-      id: 2,
-      name: 'Elite-Ember',
-      img: require('../../../assets/featuredrestaurant.png'),
-      rating: 4.4,
-      deliveryTime: '10-15 mins',
-      tags: ['Burger', 'Chicken', 'FastFood'],
-      isFavorite: false,
-    },
-  ]);
-  const [nonVegRestaurantsState, setNonVegRestaurantsState] = useState([
-    {
-      id: 2,
-      name: 'Elite-Ember',
-      img: require('../../../assets/featuredrestaurant.png'),
-      rating: 4.4,
-      deliveryTime: '10-15 mins',
-      tags: ['Chicken', 'Mutton', 'Seafood'],
-      isFavorite: false,
-    },
-    {
-      id: 1,
-      name: 'Bistro Excellence',
-      img: require('../../../assets/featuredrestaurant.png'),
-      rating: 4.4,
-      deliveryTime: '10-15 mins',
-      tags: ['Chicken', 'Mutton', 'Seafood'],
-      isFavorite: false,
-    },
-  ]);
+  const [allRestaurants, setAllRestaurants] = useState<any[]>([]);
+  const [vegRestaurantsState, setVegRestaurantsState] = useState<any[]>([]);
+  const [nonVegRestaurantsState, setNonVegRestaurantsState] = useState<any[]>([]);
 
-  // Cart states
-  const [cartItemsCount, setCartItemsCount] = useState(4);
-  const [cartTotal, setCartTotal] = useState(234.5);
+  // Load restaurants from API
+  useEffect(() => {
+    restaurantAPI.getAll()
+      .then((res: any) => {
+        const list = (res.restaurants || []).map(mapRestaurant);
+        setAllRestaurants(list);
+        setVegRestaurantsState(list.filter((r: any) => r.isVeg));
+        setNonVegRestaurantsState(list.filter((r: any) => !r.isVeg));
+      })
+      .catch(() => {
+        // Keep empty — no restaurants added yet
+      });
+  }, []);
+
+  // Cart state from context
+  const cartItemsCount = totalItems;
+  const cartTotal = totalAmount;
 
   const toggleVegMode = () => {
     setIsVegMode(prev => !prev);
