@@ -16,11 +16,14 @@ import {
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import { getFontFamily, getFontWeight } from '../utils/fontHelper';
+import { authAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const { height: screenHeight, width } = Dimensions.get('window');
 
 const OtpVerificationScreen = ({ navigation, route }: any) => {
   const { mobile } = route.params || {};
+  const { login } = useAuth();
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [loadingResend, setLoadingResend] = useState(false);
   const [loadingVerify, setLoadingVerify] = useState(false);
@@ -76,25 +79,38 @@ const OtpVerificationScreen = ({ navigation, route }: any) => {
     }
   };
 
-  const handleResend = () => {
-    setLoadingResend(true);
-    setTimeout(() => {
-      setLoadingResend(false);
+  const handleResend = async () => {
+    try {
+      setLoadingResend(true);
+      await authAPI.sendOtp(mobile);
       setOtp(['', '', '', '', '', '']);
       setTimer(60);
       inputs.current[0]?.focus();
-    }, 2000);
+    } catch {
+      // silently fail on resend — user can try again
+    } finally {
+      setLoadingResend(false);
+    }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     const otpValue = otp.join('');
     if (otpValue.length < 6) return;
-
-    setLoadingVerify(true);
-    setTimeout(() => {
+    try {
+      setLoadingVerify(true);
+      const res = await authAPI.verifyOtp(mobile, otpValue);
+      await login(res.token, res.user);
+      if (res.isNewUser) {
+        navigation.replace('Welcome', { mobile });
+      } else {
+        navigation.replace('Home');
+      }
+    } catch (err: any) {
+      setOtp(['', '', '', '', '', '']);
+      inputs.current[0]?.focus();
+    } finally {
       setLoadingVerify(false);
-      navigation.navigate('Welcome', { mobile });
-    }, 2000);
+    }
   };
 
   const formatTime = () => {

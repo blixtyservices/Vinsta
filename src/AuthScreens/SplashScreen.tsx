@@ -1,16 +1,23 @@
-// src/screens/SplashScreen.js
-
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { COLORS } from '../theme/colors';
+import { useAuth } from '../context/AuthContext';
 
 const SplashScreen = ({ navigation }: any) => {
+  const { token, isLoading } = useAuth();
+
   useEffect(() => {
+    if (isLoading) return; // wait for token restore to finish
     const timer = setTimeout(() => {
-      navigation.replace('Home'); //Home SignIn
-    }, 2000);
+      if (token) {
+        navigation.replace('Home');
+      } else {
+        navigation.replace('Onboarding1');
+      }
+    }, 1500);
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [isLoading, token, navigation]);
+
   return (
     <View style={styles.container}>
       <Image
@@ -24,7 +31,7 @@ const SplashScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.secondary,
     alignItems: 'center',
     justifyContent: 'center',
   },

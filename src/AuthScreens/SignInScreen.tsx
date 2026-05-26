@@ -11,26 +11,38 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { COLORS } from '../theme/colors';
 import { getFontFamily, getFontWeight } from '../utils/fontHelper';
+import { authAPI } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
 
 const SignInScreen = ({ navigation }: any) => {
   const [mobile, setMobile] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
 
   const validateMobile = (number: string) => /^[6-9]\d{9}$/.test(number);
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (!validateMobile(mobile)) {
       setPopupMessage('Please enter a valid 10-digit Indian mobile number.');
       setShowPopup(true);
       return;
     }
-    navigation.navigate('OtpVerification', { mobile });
+    try {
+      setLoading(true);
+      await authAPI.sendOtp(mobile);
+      navigation.navigate('OtpVerification', { mobile });
+    } catch (err: any) {
+      setPopupMessage(err.message || 'Failed to send OTP. Try again.');
+      setShowPopup(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -80,11 +92,16 @@ const SignInScreen = ({ navigation }: any) => {
           </View>
 
           <TouchableOpacity
-            style={[styles.button, { opacity: mobile.length === 10 ? 1 : 0.6 }]}
+            style={[styles.button, { opacity: mobile.length === 10 && !loading ? 1 : 0.6 }]}
             onPress={handleSendOtp}
+            disabled={loading || mobile.length !== 10}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>Send OTP</Text>
+            {loading ? (
+              <ActivityIndicator color={COLORS.secondary} size="small" />
+            ) : (
+              <Text style={styles.buttonText}>Send OTP</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.socialContainer}>
