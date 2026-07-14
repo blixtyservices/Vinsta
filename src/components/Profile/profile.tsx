@@ -14,11 +14,13 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../../theme/colors';
 import { ThemeContext } from '../../theme/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 
 const { width, height } = Dimensions.get('window');
 
 const Profile = () => {
   const navigation = useNavigation<any>();
+  const { logout } = useAuth();
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
   const [popupAction, setPopupAction] = useState<null | (() => void)>(null);
@@ -229,9 +231,10 @@ const Profile = () => {
           <TouchableOpacity
             style={[styles.optionRow, { borderBottomColor: theme.border }]}
             onPress={() =>
-              openPopup('Are you sure you want to logout?', () =>
-                navigation.navigate('SignIn'),
-              )
+              openPopup('Are you sure you want to logout?', async () => {
+                await logout();
+                navigation.navigate('SignIn');
+              })
             }
           >
             <View style={styles.optionLeft}>
@@ -249,9 +252,10 @@ const Profile = () => {
           <TouchableOpacity
             style={[styles.optionRow, { borderBottomColor: theme.border }]}
             onPress={() =>
-              openPopup('Are you sure you want to delete your account?', () =>
-                navigation.navigate('SignIn'),
-              )
+              openPopup('Are you sure you want to delete your account?', async () => {
+                await logout();
+                navigation.navigate('SignIn');
+              })
             }
           >
             <View style={styles.optionLeft}>

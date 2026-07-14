@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authAPI } from '../services/api';
+import { MOCK_USER_PROFILE } from '../utils/mockData';
 
 type User = {
   _id: string;
@@ -33,11 +33,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const saved = await AsyncStorage.getItem('token');
         if (saved) {
           setToken(saved);
-          const res = await authAPI.getMe();
-          setUser(res.user);
+          const savedUser = await AsyncStorage.getItem('demoUser');
+          setUser(
+            savedUser
+              ? JSON.parse(savedUser)
+              : { ...MOCK_USER_PROFILE },
+          );
         }
       } catch {
         await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('demoUser');
       } finally {
         setIsLoading(false);
       }
@@ -47,23 +52,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (newToken: string, newUser: User) => {
     await AsyncStorage.setItem('token', newToken);
+    await AsyncStorage.setItem('demoUser', JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
   };
 
   const logout = async () => {
     await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('demoUser');
     setToken(null);
     setUser(null);
   };
 
   const refreshUser = async () => {
-    const res = await authAPI.getMe();
-    setUser(res.user);
+    const savedUser = await AsyncStorage.getItem('demoUser');
+    setUser(savedUser ? JSON.parse(savedUser) : { ...MOCK_USER_PROFILE });
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, token, isLoading, login, logout, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

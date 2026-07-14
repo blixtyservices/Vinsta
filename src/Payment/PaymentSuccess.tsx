@@ -9,10 +9,12 @@ import {
   SafeAreaView,
   BackHandler,
 } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 
 const PaymentSuccess = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const orderId = route.params?.orderId;
 
   // Handle Android hardware back button
   useFocusEffect(
@@ -58,6 +60,9 @@ const PaymentSuccess = () => {
         {/* SUCCESS TEXT */}
         <Text style={styles.title}>Congratulations!</Text>
         <Text style={styles.subtitle}>You Ordered Successfully</Text>
+        {orderId && (
+          <Text style={styles.orderIdText}>Order ID: #{orderId.slice(-8).toUpperCase()}</Text>
+        )}
         <Text style={styles.desc}>
           You successfully placed an order, your order is confirmed and will be
           delivered ASAP ThankYou.{'\n'}Wish you enjoy the food.
@@ -148,6 +153,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Figtree-SemiBold',
     marginTop: 6,
+  },
+  orderIdText: {
+    color: '#fff',
+    fontSize: 13,
+    fontFamily: 'Figtree-Medium',
+    marginTop: 8,
+    opacity: 0.85,
   },
   desc: {
     color: '#fff',

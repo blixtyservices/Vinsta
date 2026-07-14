@@ -18,7 +18,10 @@ import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../../theme/ThemeContext';
 import { COLORS } from '../../theme/colors';
 import { useCart } from '../../context/CartContext';
-import { ordersAPI, authAPI } from '../../services/api';
+import { MOCK_USER_PROFILE } from '../../utils/mockData';
+import { ordersAPI } from '../../services/api';
+
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -63,7 +66,6 @@ const getFontWeight = (weight = 'Regular') => {
     Medium: '500',
     SemiBold: '600',
     Bold: '700',
-    ExtraLight: '200',
     ExtraBold: '800',
     Black: '900',
     '100': '100',
@@ -87,17 +89,13 @@ const CartScreen = () => {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [savedAddress, setSavedAddress] = useState<any>(null);
 
-  // Load saved address from profile
+  // Load saved address from local mock profile
   useEffect(() => {
-    authAPI.getMe()
-      .then((res: any) => {
-        const addrs = res.user?.addresses || [];
-        if (addrs.length > 0) {
-          const def = addrs.find((a: any) => a.isDefault) || addrs[0];
-          setSavedAddress(def);
-        }
-      })
-      .catch(() => {});
+    const addrs = MOCK_USER_PROFILE.addresses || [];
+    if (addrs.length > 0) {
+      const def = addrs.find((a: any) => a.isDefault) || addrs[0];
+      setSavedAddress(def);
+    }
   }, []);
 
   const [selectedAddress, setSelectedAddress] = useState({
@@ -167,13 +165,12 @@ const CartScreen = () => {
     try {
       setPlacingOrder(true);
       const res = await ordersAPI.place({
-        restaurantId: restaurantId!,
-        items: cartItems.map(i => ({
-          menuItem: i.menuItemId,
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity,
-          specialInstructions: i.specialInstructions,
+        restaurantId: restaurantId || 'rest_006',
+        items: cartItems.map(item => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          menuItemId: item.menuItemId,
         })),
         deliveryAddress: deliveryAddr,
         paymentMethod: 'cod',
@@ -182,538 +179,541 @@ const CartScreen = () => {
       clearCart();
       navigation.navigate('PaymentSuccess', { orderId: res.order?._id });
     } catch (err: any) {
-      Alert.alert('Order Failed', err.message || 'Could not place order. Try again.');
+      Alert.alert(
+        'Order Failed',
+        err.message || 'Could not place order. Try again.',
+      );
     } finally {
       setPlacingOrder(false);
     }
   };
 
-  const renderVegNonVegIcon = (isVeg: boolean) => {
-    if (isVeg) {
-      return (
-        <View style={styles.vegIconContainer}>
+const renderVegNonVegIcon = (isVeg: boolean) => {
+  if (isVeg) {
+    return (
+      <View style={styles.vegIconContainer}>
+        <Image
+          source={require('../../assets/veg.png')}
+          style={styles.vegNonVegIcon}
+        />
+      </View>
+    );
+  } else {
+    return (
+      <View style={styles.nonVegIconContainer}>
+        <Image
+          source={require('../../assets/nonveg.png')}
+          style={styles.vegNonVegIcon}
+        />
+      </View>
+    );
+  }
+};
+
+const openInstructionModal = () => {
+  setTempInstruction(cookingInstruction);
+  setShowInstructionModal(true);
+};
+
+const closeInstructionModal = () => {
+  setShowInstructionModal(false);
+};
+
+const saveInstruction = () => {
+  setCookingInstruction(tempInstruction.trim());
+  setShowInstructionModal(false);
+};
+
+return (
+  <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <StatusBar
+      barStyle={
+        theme.cardBackground === 'dark' ? 'light-content' : 'dark-content'
+      }
+      translucent
+      backgroundColor="transparent"
+    />
+
+    {/* HEADER */}
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Image
+          source={require('../../assets/back.png')}
+          style={[styles.backIcon, { tintColor: theme.text }]}
+        />
+      </TouchableOpacity>
+      <Text style={[styles.headerTitle, { color: theme.text }]}>My Cart</Text>
+      <View style={{ width: 20 }} />
+    </View>
+
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContainer}
+    >
+      {/* RESTAURANT HEADER */}
+      <View
+        style={[
+          styles.restaurantCard,
+          { backgroundColor: theme.cardBackground },
+        ]}
+      >
+        <View style={styles.restaurantHeader}>
           <Image
-            source={require('../../assets/veg.png')}
-            style={styles.vegNonVegIcon}
+            source={require('../../assets/home.png')}
+            style={styles.homeIcon}
           />
+          <View style={styles.restaurantInfo}>
+            <Text style={[styles.restaurantName, { color: theme.text }]}>
+              Domino&apos;s Pizza
+            </Text>
+            <View style={styles.addressRow}>
+              <Text
+                style={[
+                  styles.restaurantAddress,
+                  { color: theme.textSecondary },
+                ]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {selectedAddress.label} | {selectedAddress.address}
+              </Text>
+              <TouchableOpacity>
+                <Image
+                  source={require('../../assets/dropdown.png')}
+                  style={[
+                    styles.dropdownIcon,
+                    { tintColor: theme.textSecondary },
+                  ]}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      );
-    } else {
-      return (
-        <View style={styles.nonVegIconContainer}>
-          <Image
-            source={require('../../assets/nonveg.png')}
-            style={styles.vegNonVegIcon}
-          />
-        </View>
-      );
-    }
-  };
 
-  const openInstructionModal = () => {
-    setTempInstruction(cookingInstruction);
-    setShowInstructionModal(true);
-  };
-
-  const closeInstructionModal = () => {
-    setShowInstructionModal(false);
-  };
-
-  const saveInstruction = () => {
-    setCookingInstruction(tempInstruction.trim());
-    setShowInstructionModal(false);
-  };
-
-  return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <StatusBar
-        barStyle={
-          theme.cardBackground === 'dark' ? 'light-content' : 'dark-content'
-        }
-        translucent
-        backgroundColor="transparent"
-      />
-
-      {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image
-            source={require('../../assets/back.png')}
-            style={[styles.backIcon, { tintColor: theme.text }]}
-          />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>My Cart</Text>
-        <View style={{ width: 20 }} />
+        {couponApplied && (
+          <View style={styles.couponBadge}>
+            <View style={styles.couponIconContainer}>
+              <Text style={styles.couponIcon}>✓</Text>
+            </View>
+            <Text style={styles.couponText}>
+              ₹50 saved! With the applied coupon
+            </Text>
+          </View>
+        )}
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
-      >
-        {/* RESTAURANT HEADER */}
+      {/* CART ITEMS SECTION */}
+      <Text style={[styles.sectionTitle, { color: theme.text }]}>
+        VINSTA eligible items
+      </Text>
+
+      {cartItems.map((item, index) => (
         <View
+          key={item.menuItemId}
           style={[
-            styles.restaurantCard,
-            { backgroundColor: theme.cardBackground },
+            styles.cartCard,
+            {
+              backgroundColor: theme.cardBackground,
+              borderColor: theme.borderColor,
+            },
           ]}
         >
-          <View style={styles.restaurantHeader}>
-            <Image
-              source={require('../../assets/home.png')}
-              style={styles.homeIcon}
-            />
-            <View style={styles.restaurantInfo}>
-              <Text style={[styles.restaurantName, { color: theme.text }]}>
-                Domino&apos;s Pizza
+          {renderVegNonVegIcon(item.isVeg)}
+
+          <View style={styles.itemDetails}>
+            <View style={styles.itemHeader}>
+              <Text style={[styles.foodName, { color: theme.text }]}>
+                {item.name}
               </Text>
-              <View style={styles.addressRow}>
-                <Text
-                  style={[
-                    styles.restaurantAddress,
-                    { color: theme.textSecondary },
-                  ]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
+              <Text style={styles.eligibleBadge}>✓ Eligible</Text>
+            </View>
+
+            <Text
+              style={[styles.foodDescription, { color: theme.textSecondary }]}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {item.description}
+            </Text>
+
+            {/* Cooking requests row only for first item */}
+            {index === 0 && (
+              <View style={styles.cookingRow}>
+                <TouchableOpacity
+                  style={styles.cookingLeft}
+                  onPress={openInstructionModal}
+                  activeOpacity={0.7}
                 >
-                  {selectedAddress.label} | {selectedAddress.address}
-                </Text>
-                <TouchableOpacity>
                   <Image
-                    source={require('../../assets/dropdown.png')}
-                    style={[
-                      styles.dropdownIcon,
-                      { tintColor: theme.textSecondary },
-                    ]}
+                    source={require('../../assets/edit.png')}
+                    style={styles.editIcon}
                   />
+                  <View>
+                    <Text
+                      style={[
+                        styles.cookingTitle,
+                        { color: theme.textSecondary },
+                      ]}
+                    >
+                      Cooking requests
+                    </Text>
+                    {cookingInstruction.length > 0 && (
+                      <Text style={styles.instructionAddedText}>
+                        Instruction added
+                      </Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.cutleryButton,
+                    cutleryNeeded && styles.cutleryButtonActive,
+                  ]}
+                  onPress={toggleCutlery}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.cutleryButtonContent}>
+                    {cutleryNeeded && (
+                      <View style={styles.cutleryCheckContainer}>
+                        <Text style={styles.cutleryCheck}>✓</Text>
+                      </View>
+                    )}
+                    <Text
+                      style={[
+                        styles.cutleryText,
+                        cutleryNeeded && styles.cutleryTextActive,
+                      ]}
+                    >
+                      Cutlery Needed
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View style={styles.priceRow}>
+              <Text style={[styles.foodPrice, { color: theme.text }]}>
+                ₹{item.price}
+              </Text>
+
+              <View style={styles.qtyContainer}>
+                <TouchableOpacity
+                  onPress={() => updateQuantity(item.menuItemId, false)}
+                  style={styles.qtyBtn}
+                >
+                  <Text style={[styles.qtyText, { color: theme.text }]}>
+                    -
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={[styles.qtyNumber, { color: theme.text }]}>
+                  {item.quantity < 10 ? `0${item.quantity}` : item.quantity}
+                </Text>
+
+                <TouchableOpacity
+                  onPress={() => updateQuantity(item.menuItemId, true)}
+                  style={styles.qtyBtn}
+                >
+                  <Text style={[styles.qtyText, { color: theme.text }]}>
+                    +
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
 
-          {couponApplied && (
-            <View style={styles.couponBadge}>
-              <View style={styles.couponIconContainer}>
-                <Text style={styles.couponIcon}>✓</Text>
-              </View>
-              <Text style={styles.couponText}>
-                ₹50 saved! With the applied coupon
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* CART ITEMS SECTION */}
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>
-          VINSTA eligible items
-        </Text>
-
-        {cartItems.map((item, index) => (
-          <View
-            key={item.id}
-            style={[
-              styles.cartCard,
-              {
-                backgroundColor: theme.cardBackground,
-                borderColor: theme.borderColor,
-              },
-            ]}
-          >
-            {renderVegNonVegIcon(item.isVeg)}
-
-            <View style={styles.itemDetails}>
-              <View style={styles.itemHeader}>
-                <Text style={[styles.foodName, { color: theme.text }]}>
-                  {item.name}
-                </Text>
-                <Text style={styles.eligibleBadge}>✓ Eligible</Text>
-              </View>
-
-              <Text
-                style={[styles.foodDescription, { color: theme.textSecondary }]}
-                numberOfLines={2}
-                ellipsizeMode="tail"
-              >
-                {item.description}
-              </Text>
-
-              {/* Cooking requests row only for first item */}
-              {index === 0 && (
-                <View style={styles.cookingRow}>
-                  <TouchableOpacity
-                    style={styles.cookingLeft}
-                    onPress={openInstructionModal}
-                    activeOpacity={0.7}
-                  >
-                    <Image
-                      source={require('../../assets/edit.png')}
-                      style={styles.editIcon}
-                    />
-                    <View>
-                      <Text
-                        style={[
-                          styles.cookingTitle,
-                          { color: theme.textSecondary },
-                        ]}
-                      >
-                        Cooking requests
-                      </Text>
-                      {cookingInstruction.length > 0 && (
-                        <Text style={styles.instructionAddedText}>
-                          Instruction added
-                        </Text>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.cutleryButton,
-                      cutleryNeeded && styles.cutleryButtonActive,
-                    ]}
-                    onPress={toggleCutlery}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.cutleryButtonContent}>
-                      {cutleryNeeded && (
-                        <View style={styles.cutleryCheckContainer}>
-                          <Text style={styles.cutleryCheck}>✓</Text>
-                        </View>
-                      )}
-                      <Text
-                        style={[
-                          styles.cutleryText,
-                          cutleryNeeded && styles.cutleryTextActive,
-                        ]}
-                      >
-                        Cutlery Needed
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              <View style={styles.priceRow}>
-                <Text style={[styles.foodPrice, { color: theme.text }]}>
-                  ₹{item.price}
-                </Text>
-
-                <View style={styles.qtyContainer}>
-                  <TouchableOpacity
-                    onPress={() => updateQuantity(item.id, false)}
-                    style={styles.qtyBtn}
-                  >
-                    <Text style={[styles.qtyText, { color: theme.text }]}>
-                      -
-                    </Text>
-                  </TouchableOpacity>
-
-                  <Text style={[styles.qtyNumber, { color: theme.text }]}>
-                    {item.quantity < 10 ? `0${item.quantity}` : item.quantity}
-                  </Text>
-
-                  <TouchableOpacity
-                    onPress={() => updateQuantity(item.id, true)}
-                    style={styles.qtyBtn}
-                  >
-                    <Text style={[styles.qtyText, { color: theme.text }]}>
-                      +
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              onPress={() => askRemoveItem(item.id, item.name)}
-              style={styles.deleteButton}
-            >
-              <Text style={[styles.deleteText, { color: theme.textSecondary }]}>
-                ✕
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-
-        {/* SAVINGS CORNER */}
-        <View
-          style={[
-            styles.savingsCard,
-            { backgroundColor: theme.cardBackground },
-          ]}
-        >
-          <Text style={[styles.savingsTitle, { color: theme.text }]}>
-            SAVINGS CORNER
-          </Text>
-
-          {couponApplied ? (
-            <View style={styles.couponAppliedRow}>
-              <View style={styles.couponAppliedLeft}>
-                <View style={styles.couponAppliedIcon}>
-                  <Text style={styles.couponAppliedCheck}>✓</Text>
-                </View>
-                <Text
-                  style={[styles.couponAppliedText, { color: theme.text }]}
-                >
-                  ₹50 saved with VINSTA
-                </Text>
-              </View>
-              <TouchableOpacity onPress={toggleCoupon}>
-                <Text style={styles.removeCouponText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity style={styles.viewCouponsButton}>
-              <Text style={styles.viewCouponsText}>View all coupons</Text>
-              <Text
-                style={[
-                  styles.viewCouponsArrow,
-                  { color: theme.textSecondary },
-                ]}
-              >
-                ›
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* DELIVERY SECTION */}
-        <View
-          style={[
-            styles.deliveryCard,
-            { backgroundColor: theme.cardBackground },
-          ]}
-        >
-          <Text style={[styles.deliveryTypeTitle, { color: theme.text }]}>
-            Delivery Type
-          </Text>
-
-          <View style={styles.deliveryOption}>
-            <View style={styles.deliveryOptionLeft}>
-              <View style={styles.deliveryIconContainer}>
-                <Text style={styles.deliveryIcon}>⚡</Text>
-              </View>
-              <View>
-                <Text style={[styles.deliveryTime, { color: theme.text }]}>
-                  15 mins delivery
-                </Text>
-                <Text
-                  style={[styles.deliveryNote, { color: theme.textSecondary }]}
-                >
-                  on your Bolt® order
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.deliveryPrice}>₹{deliveryCharge}</Text>
-          </View>
-
-          <TextInput
-            placeholder="Instructions"
-            placeholderTextColor={theme.textSecondary}
-            value={deliveryInstructions}
-            onChangeText={setDeliveryInstructions}
-            style={[
-              styles.instructionsInput,
-              {
-                color: theme.text,
-                backgroundColor: theme.background,
-                borderColor: theme.borderColor,
-              },
-            ]}
-          />
-        </View>
-
-        {/* PRICE BREAKDOWN */}
-        <View
-          style={[styles.priceCard, { backgroundColor: theme.cardBackground }]}
-        >
-          <View style={styles.totalHeader}>
-            <View>
-              <Text style={[styles.toPayLabel, { color: theme.textSecondary }]}>
-                To Pay
-              </Text>
-              <Text style={[styles.toPayAmount, { color: theme.text }]}>
-                ₹{total}
-              </Text>
-              {couponDiscount > 0 && (
-                <Text style={styles.savingsText}>
-                  ₹{couponDiscount} saved on the total!
-                </Text>
-              )}
-            </View>
-            <View style={styles.originalPriceContainer}>
-              <Text style={styles.originalPrice}>
-                ₹{total + couponDiscount}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.priceBreakdown}>
-            <View style={styles.priceRowItem}>
-              <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>
-                Item Total
-              </Text>
-              <Text style={[styles.priceValue, { color: theme.text }]}>
-                ₹{subtotal}
-              </Text>
-            </View>
-            <View style={styles.priceRowItem}>
-              <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>
-                Delivery Charge
-              </Text>
-              <Text style={[styles.priceValue, { color: theme.text }]}>
-                ₹{deliveryCharge}
-              </Text>
-            </View>
-            <View style={styles.priceRowItem}>
-              <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>
-                Tax & Charges
-              </Text>
-              <Text style={[styles.priceValue, { color: theme.text }]}>
-                ₹{taxAndCharges}
-              </Text>
-            </View>
-            {couponDiscount > 0 && (
-              <View style={styles.priceRowItem}>
-                <Text style={[styles.priceLabel, { color: '#27AE60' }]}>
-                  Coupon Discount
-                </Text>
-                <Text style={[styles.priceValue, { color: '#27AE60' }]}>
-                  -₹{couponDiscount}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.divider} />
-
-          <Text
-            style={[styles.cancellationPolicy, { color: theme.textSecondary }]}
-          >
-            Cancellation policy: Please double-check your order and address
-            details. Orders are non-refundable once placed.
-          </Text>
-
-          <Text style={[styles.paymentTitle, { color: theme.text }]}>
-            PAY USING
-          </Text>
-
-          <View style={styles.paymentMethod}>
-            <View style={styles.paymentMethodLeft}>
-              <Text style={styles.paymentIcon}>▲</Text>
-              <Text style={[styles.paymentName, { color: theme.text }]}>
-                BHIM
-              </Text>
-            </View>
-            <Text style={styles.offerAvailable}>Offer available</Text>
-          </View>
-
           <TouchableOpacity
-            onPress={handleCheckout}
-            disabled={placingOrder || cartItems.length === 0}
-            style={[styles.payButton, { backgroundColor: COLORS.primary, opacity: placingOrder || cartItems.length === 0 ? 0.6 : 1 }]}
+            onPress={() => askRemoveItem(item.menuItemId, item.name)}
+            style={styles.deleteButton}
           >
-            {placingOrder ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.payButtonText}>Pay ₹{total}</Text>
-            )}
+            <Text style={[styles.deleteText, { color: theme.textSecondary }]}>
+              ✕
+            </Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      ))}
 
-      {/* MODAL FOR COOKING INSTRUCTION */}
-      <Modal
-        visible={showInstructionModal}
-        transparent
-        animationType="slide"
-        onRequestClose={closeInstructionModal}
+      {/* SAVINGS CORNER */}
+      <View
+        style={[
+          styles.savingsCard,
+          { backgroundColor: theme.cardBackground },
+        ]}
       >
-        <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.modalContainer,
-              { backgroundColor: theme.cardBackground },
-            ]}
-          >
-            <Text style={[styles.modalTitle, { color: theme.text }]}>
-              Add cooking instruction
-            </Text>
-            <TextInput
-              style={[
-                styles.modalInput,
-                {
-                  color: theme.text,
-                  borderColor: theme.borderColor,
-                  backgroundColor: theme.background,
-                },
-              ]}
-              placeholder="Type your note here"
-              placeholderTextColor={theme.textSecondary}
-              multiline
-              value={tempInstruction}
-              onChangeText={setTempInstruction}
-            />
-            <View style={styles.modalButtonsRow}>
-              <TouchableOpacity
-                onPress={closeInstructionModal}
-                style={styles.modalCancelButton}
+        <Text style={[styles.savingsTitle, { color: theme.text }]}>
+          SAVINGS CORNER
+        </Text>
+
+        {couponApplied ? (
+          <View style={styles.couponAppliedRow}>
+            <View style={styles.couponAppliedLeft}>
+              <View style={styles.couponAppliedIcon}>
+                <Text style={styles.couponAppliedCheck}>✓</Text>
+              </View>
+              <Text
+                style={[styles.couponAppliedText, { color: theme.text }]}
               >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={saveInstruction}
-                style={styles.modalAddButton}
-              >
-                <Text style={styles.modalAddText}>Add instruction</Text>
-              </TouchableOpacity>
+                ₹50 saved with VINSTA
+              </Text>
             </View>
+            <TouchableOpacity onPress={toggleCoupon}>
+              <Text style={styles.removeCouponText}>✕</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
-
-      {/* DELETE CONFIRMATION MODAL */}
-      <Modal
-        visible={deleteModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={cancelRemoveItem}
-      >
-        <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.deleteModalContainer,
-              { backgroundColor: theme.cardBackground },
-            ]}
-          >
-            <Text style={[styles.deleteTitle, { color: theme.text }]}>
-              Remove item
-            </Text>
+        ) : (
+          <TouchableOpacity style={styles.viewCouponsButton}>
+            <Text style={styles.viewCouponsText}>View all coupons</Text>
             <Text
-              style={[styles.deleteMessage, { color: theme.textSecondary }]}
+              style={[
+                styles.viewCouponsArrow,
+                { color: theme.textSecondary },
+              ]}
             >
-              {itemToDelete
-                ? `Are you sure you want to remove "${itemToDelete.name}" from the cart?`
-                : 'Are you sure you want to remove this item from the cart?'}
+              ›
             </Text>
-            <View style={styles.modalButtonsRow}>
-              <TouchableOpacity
-                onPress={cancelRemoveItem}
-                style={styles.modalCancelButton}
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* DELIVERY SECTION */}
+      <View
+        style={[
+          styles.deliveryCard,
+          { backgroundColor: theme.cardBackground },
+        ]}
+      >
+        <Text style={[styles.deliveryTypeTitle, { color: theme.text }]}>
+          Delivery Type
+        </Text>
+
+        <View style={styles.deliveryOption}>
+          <View style={styles.deliveryOptionLeft}>
+            <View style={styles.deliveryIconContainer}>
+              <Text style={styles.deliveryIcon}>⚡</Text>
+            </View>
+            <View>
+              <Text style={[styles.deliveryTime, { color: theme.text }]}>
+                15 mins delivery
+              </Text>
+              <Text
+                style={[styles.deliveryNote, { color: theme.textSecondary }]}
               >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={confirmRemoveItem}
-                style={styles.deleteConfirmButton}
-              >
-                <Text style={styles.deleteConfirmText}>Remove</Text>
-              </TouchableOpacity>
+                on your Bolt® order
+              </Text>
             </View>
           </View>
+          <Text style={styles.deliveryPrice}>₹{deliveryCharge}</Text>
         </View>
-      </Modal>
-    </View>
-  );
+
+        <TextInput
+          placeholder="Instructions"
+          placeholderTextColor={theme.textSecondary}
+          value={deliveryInstructions}
+          onChangeText={setDeliveryInstructions}
+          style={[
+            styles.instructionsInput,
+            {
+              color: theme.text,
+              backgroundColor: theme.background,
+              borderColor: theme.borderColor,
+            },
+          ]}
+        />
+      </View>
+
+      {/* PRICE BREAKDOWN */}
+      <View
+        style={[styles.priceCard, { backgroundColor: theme.cardBackground }]}
+      >
+        <View style={styles.totalHeader}>
+          <View>
+            <Text style={[styles.toPayLabel, { color: theme.textSecondary }]}>
+              To Pay
+            </Text>
+            <Text style={[styles.toPayAmount, { color: theme.text }]}>
+              ₹{total}
+            </Text>
+            {couponDiscount > 0 && (
+              <Text style={styles.savingsText}>
+                ₹{couponDiscount} saved on the total!
+              </Text>
+            )}
+          </View>
+          <View style={styles.originalPriceContainer}>
+            <Text style={styles.originalPrice}>
+              ₹{total + couponDiscount}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.priceBreakdown}>
+          <View style={styles.priceRowItem}>
+            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>
+              Item Total
+            </Text>
+            <Text style={[styles.priceValue, { color: theme.text }]}>
+              ₹{subtotal}
+            </Text>
+          </View>
+          <View style={styles.priceRowItem}>
+            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>
+              Delivery Charge
+            </Text>
+            <Text style={[styles.priceValue, { color: theme.text }]}>
+              ₹{deliveryCharge}
+            </Text>
+          </View>
+          <View style={styles.priceRowItem}>
+            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>
+              Tax & Charges
+            </Text>
+            <Text style={[styles.priceValue, { color: theme.text }]}>
+              ₹{taxAndCharges}
+            </Text>
+          </View>
+          {couponDiscount > 0 && (
+            <View style={styles.priceRowItem}>
+              <Text style={[styles.priceLabel, { color: '#27AE60' }]}>
+                Coupon Discount
+              </Text>
+              <Text style={[styles.priceValue, { color: '#27AE60' }]}>
+                -₹{couponDiscount}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.divider} />
+
+        <Text
+          style={[styles.cancellationPolicy, { color: theme.textSecondary }]}
+        >
+          Cancellation policy: Please double-check your order and address
+          details. Orders are non-refundable once placed.
+        </Text>
+
+        <Text style={[styles.paymentTitle, { color: theme.text }]}>
+          PAY USING
+        </Text>
+
+        <View style={styles.paymentMethod}>
+          <View style={styles.paymentMethodLeft}>
+            <Text style={styles.paymentIcon}>▲</Text>
+            <Text style={[styles.paymentName, { color: theme.text }]}>
+              BHIM
+            </Text>
+          </View>
+          <Text style={styles.offerAvailable}>Offer available</Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={handleCheckout}
+          disabled={placingOrder || cartItems.length === 0}
+          style={[styles.payButton, { backgroundColor: COLORS.primary, opacity: placingOrder || cartItems.length === 0 ? 0.6 : 1 }]}
+        >
+          {placingOrder ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.payButtonText}>Pay ₹{total}</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+
+    {/* MODAL FOR COOKING INSTRUCTION */}
+    <Modal
+      visible={showInstructionModal}
+      transparent
+      animationType="slide"
+      onRequestClose={closeInstructionModal}
+    >
+      <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.modalContainer,
+            { backgroundColor: theme.cardBackground },
+          ]}
+        >
+          <Text style={[styles.modalTitle, { color: theme.text }]}>
+            Add cooking instruction
+          </Text>
+          <TextInput
+            style={[
+              styles.modalInput,
+              {
+                color: theme.text,
+                borderColor: theme.borderColor,
+                backgroundColor: theme.background,
+              },
+            ]}
+            placeholder="Type your note here"
+            placeholderTextColor={theme.textSecondary}
+            multiline
+            value={tempInstruction}
+            onChangeText={setTempInstruction}
+          />
+          <View style={styles.modalButtonsRow}>
+            <TouchableOpacity
+              onPress={closeInstructionModal}
+              style={styles.modalCancelButton}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={saveInstruction}
+              style={styles.modalAddButton}
+            >
+              <Text style={styles.modalAddText}>Add instruction</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+
+    {/* DELETE CONFIRMATION MODAL */}
+    <Modal
+      visible={deleteModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={cancelRemoveItem}
+    >
+      <View style={styles.modalOverlay}>
+        <View
+          style={[
+            styles.deleteModalContainer,
+            { backgroundColor: theme.cardBackground },
+          ]}
+        >
+          <Text style={[styles.deleteTitle, { color: theme.text }]}>
+            Remove item
+          </Text>
+          <Text
+            style={[styles.deleteMessage, { color: theme.textSecondary }]}
+          >
+            {itemToDelete
+              ? `Are you sure you want to remove "${itemToDelete.name}" from the cart?`
+              : 'Are you sure you want to remove this item from the cart?'}
+          </Text>
+          <View style={styles.modalButtonsRow}>
+            <TouchableOpacity
+              onPress={cancelRemoveItem}
+              style={styles.modalCancelButton}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={confirmRemoveItem}
+              style={styles.deleteConfirmButton}
+            >
+              <Text style={styles.deleteConfirmText}>Remove</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  </View>
+);
 };
 
 export default CartScreen;
@@ -1336,7 +1336,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
-    backgroundColor:COLORS.primary,
+    backgroundColor: COLORS.primary,
   },
   deleteConfirmText: {
     fontSize: 13,
@@ -1854,6 +1854,43 @@ const styles = StyleSheet.create({
 
 //   input: {
 //     borderWidth: 1,
+//     borderColor: '#E0E0E0',
+//     borderRadius: 10,
+//     paddingVertical: 10,
+//     paddingHorizontal: 15,
+//     fontSize: 14,
+//     marginTop: 10,
+//     color: '#000',
+//     fontFamily: getFontFamily('Regular'),
+//     fontWeight: getFontWeight('Regular'),
+//   },
+//   couponBtn: {
+//     marginTop: 10,
+//     backgroundColor: '#FFF3E0',
+//     paddingVertical: 12,
+//     borderRadius: 10,
+//   },
+//   couponText: {
+//     color: COLORS.primary,
+//     textAlign: 'center',
+//     fontSize: 14,
+//     fontFamily: getFontFamily('SemiBold'),
+//     fontWeight: getFontWeight('SemiBold'),
+//   },
+//   checkoutBtn: {
+//     backgroundColor: COLORS.primary,
+//     borderRadius: 10,
+//     paddingVertical: 14,
+//     marginTop: 14,
+//   },
+//   checkoutText: {
+//     color: '#fff',
+//     textAlign: 'center',
+//     fontSize: 16,
+//     fontFamily: getFontFamily('Bold'),
+//     fontWeight: getFontWeight('Bold'),
+//   },
+// });
 //     borderColor: '#E0E0E0',
 //     borderRadius: 10,
 //     paddingVertical: 10,

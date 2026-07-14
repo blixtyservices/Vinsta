@@ -97,25 +97,25 @@ const Wallet = () => {
     setFilteredTransactions(allTransactions);
   };
 
-  const {theme} = useContext(ThemeContext);
-  
+  const { theme } = useContext(ThemeContext);
+
   return (
-    <View style={[styles.container,{backgroundColor : theme.background}]}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
 
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Image source={require('../../../assets/back.png')} style={[styles.backIcon,{tintColor : theme.text}]} />
+          <Image source={require('../../../assets/back.png')} style={[styles.backIcon, { tintColor: theme.text }]} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle,{color : theme.text}]}>My E-Wallet</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>My E-Wallet</Text>
         <View style={styles.headerIcons}>
           <TouchableOpacity onPress={() => setShowSearch(!showSearch)}>
-            <Image source={require('../../../assets/s1.png')} style={[styles.icon,{tintColor : theme.text}]} />
+            <Image source={require('../../../assets/s1.png')} style={[styles.icon, { tintColor: theme.text }]} />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => setShowOptions(!showOptions)}>
-            <Image source={require('../../../assets/options.png')} style={[styles.icon, { marginLeft: 10 ,tintColor : theme.text}]} />
+            <Image source={require('../../../assets/options.png')} style={[styles.icon, { marginLeft: 10, tintColor: theme.text }]} />
           </TouchableOpacity>
         </View>
       </View>
@@ -133,19 +133,19 @@ const Wallet = () => {
 
       {/* Options Dropdown */}
       {showOptions && (
-        <View style={[styles.dropdown,{backgroundColor : theme.cardBackground}]}>
-          <TouchableOpacity style={[styles.optionItem,{borderColor : theme.background}]} onPress={() => handleFilterPress('Older')}>
-            <Text style={[styles.optionText,{color : theme.text}]}>Older First</Text>
+        <View style={[styles.dropdown, { backgroundColor: theme.cardBackground }]}>
+          <TouchableOpacity style={[styles.optionItem, { borderColor: theme.background }]} onPress={() => handleFilterPress('Older')}>
+            <Text style={[styles.optionText, { color: theme.text }]}>Older First</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.optionItem,{borderColor : theme.background}]} onPress={() => handleFilterPress('Latest')}>
-            <Text style={[styles.optionText,{color : theme.text}]}>Latest First</Text>
+          <TouchableOpacity style={[styles.optionItem, { borderColor: theme.background }]} onPress={() => handleFilterPress('Latest')}>
+            <Text style={[styles.optionText, { color: theme.text }]}>Latest First</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.optionItem,{borderColor : theme.background}]} onPress={() => handleFilterPress('Credit')}>
-            <Text style={[styles.optionText,{color : theme.text}]}>Only Credit</Text>
+          <TouchableOpacity style={[styles.optionItem, { borderColor: theme.background }]} onPress={() => handleFilterPress('Credit')}>
+            <Text style={[styles.optionText, { color: theme.text }]}>Only Credit</Text>
             <Image source={require('../../../assets/down1.png')} style={styles.optionIcon} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.optionItem,{borderColor : theme.background}]} onPress={() => handleFilterPress('Debit')}>
-            <Text style={[styles.optionText,{color : theme.text}]}>Only Debit</Text>
+          <TouchableOpacity style={[styles.optionItem, { borderColor: theme.background }]} onPress={() => handleFilterPress('Debit')}>
+            <Text style={[styles.optionText, { color: theme.text }]}>Only Debit</Text>
             <Image source={require('../../../assets/up1.png')} style={styles.optionIcon} />
           </TouchableOpacity>
           {filterType && (
@@ -163,20 +163,20 @@ const Wallet = () => {
           <View style={styles.cardOverlay} />
 
           <View style={styles.cardContent}>
-            <Text style={[styles.cardName,{color : theme.background}]}>{walletUser || 'Your Wallet'}</Text>
-            <Text style={[styles.cardNumber,{color : theme.background}]}>VINSTA WALLET</Text>
-            <Text style={[styles.balanceLabel,{color : theme.background}]}>Your balance</Text>
+            <Text style={[styles.cardName, { color: theme.background }]}>{walletUser || 'Your Wallet'}</Text>
+            <Text style={[styles.cardNumber, { color: theme.background }]}>VINSTA WALLET</Text>
+            <Text style={[styles.balanceLabel, { color: theme.background }]}>Your balance</Text>
 
             {/* Row for balance + top up */}
             <View style={styles.balanceRow}>
-              <Text style={[styles.balanceAmount,{color : theme.background}]}>
+              <Text style={[styles.balanceAmount, { color: theme.background }]}>
                 {walletLoading ? '...' : `₹ ${walletBalance.toLocaleString('en-IN')}`}
               </Text>
               <TouchableOpacity
-                style={[styles.topUpBtn,{backgroundColor : theme.background}]}
+                style={[styles.topUpBtn, { backgroundColor: theme.background }]}
                 onPress={() => navigation.navigate('TopUp')}>
-                <Image source={require('../../../assets/topup.png')} style={[styles.bagIcon,{tintColor: theme.text}]} />
-                <Text style={[styles.topUpText,{color : theme.text}]}>Top Up</Text>
+                <Image source={require('../../../assets/topup.png')} style={[styles.bagIcon, { tintColor: theme.text }]} />
+                <Text style={[styles.topUpText, { color: theme.text }]}>Top Up</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -188,8 +188,8 @@ const Wallet = () => {
 
         {/* Filter Indicator */}
         {filterType && (
-          <View style={[styles.filterIndicator,{backgroundColor : theme.cardBackground}]}>
-            <Text style={[styles.filterText,{color : theme.text}]}>Filter: {filterType}</Text>
+          <View style={[styles.filterIndicator, { backgroundColor: theme.cardBackground }]}>
+            <Text style={[styles.filterText, { color: theme.text }]}>Filter: {filterType}</Text>
             <TouchableOpacity onPress={clearFilter}>
               <Text style={styles.clearFilterText}>Clear</Text>
             </TouchableOpacity>
@@ -199,22 +199,22 @@ const Wallet = () => {
         {/* Transaction History */}
         <View style={styles.transactionSection}>
           <View style={styles.transactionHeader}>
-            <Text style={[styles.transactionTitle,{color : theme.text}]}>Transaction History</Text>
+            <Text style={[styles.transactionTitle, { color: theme.text }]}>Transaction History</Text>
             <TouchableOpacity onPress={() => navigation.navigate('TransactionHistory')}>
               <Text style={styles.seeAll}>See All</Text>
             </TouchableOpacity>
           </View>
 
           {filteredTransactions.map(item => (
-            <View key={item.id} style={[styles.transactionRow,{borderColor : theme.cardBackground}]}>
+            <View key={item.id} style={[styles.transactionRow, { borderColor: theme.cardBackground }]}>
               <Image source={item.icon} style={styles.foodImg} />
               <View style={{ flex: 1 }}>
-                <Text style={[styles.foodTitle,{color :theme.text}]}>{item.title}</Text>
+                <Text style={[styles.foodTitle, { color: theme.text }]}>{item.title}</Text>
                 <Text style={styles.foodTime}>{item.time}</Text>
               </View>
 
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={[styles.foodAmount,{color : theme.text}]}>{item.amount}</Text>
+                <Text style={[styles.foodAmount, { color: theme.text }]}>{item.amount}</Text>
                 <View style={styles.typeRow}>
                   <Text style={styles.typeText}>{item.type}</Text>
                   <Image source={item.arrow} style={styles.arrowIcon} />
@@ -231,9 +231,9 @@ const Wallet = () => {
 export default Wallet;
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#fff' 
+  container: {
+    flex: 1,
+    backgroundColor: '#fff'
   },
 
   /** HEADER **/
@@ -245,32 +245,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 10,
   },
-  backIcon: { 
-    width: 22, 
-    height: 22, 
-    resizeMode: 'contain' 
+  backIcon: {
+    width: 22,
+    height: 22,
+    resizeMode: 'contain'
   },
-  headerTitle: { 
-    fontSize: width * 0.045, 
+  headerTitle: {
+    fontSize: width * 0.045,
     color: '#000',
     fontFamily: getFontFamily('Bold'),
     fontWeight: getFontWeight('Bold'),
   },
-  headerIcons: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center'
   },
-  icon: { 
-    width: 20, 
-    height: 20, 
-    tintColor: '#000', 
-    resizeMode: 'contain' 
+  icon: {
+    width: 20,
+    height: 20,
+    tintColor: '#000',
+    resizeMode: 'contain'
   },
 
   /** SEARCH **/
-  searchBar: { 
-    paddingHorizontal: 20, 
-    paddingBottom: 10 
+  searchBar: {
+    paddingHorizontal: 20,
+    paddingBottom: 10
   },
   searchInput: {
     backgroundColor: '#f2f2f2',
@@ -306,16 +306,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderColor: '#eee',
   },
-  optionText: { 
-    color: '#000', 
-    fontSize: 14, 
+  optionText: {
+    color: '#000',
+    fontSize: 14,
     fontFamily: getFontFamily('Medium'),
     fontWeight: getFontWeight('Medium'),
   },
-  optionIcon: { 
-    width: 14, 
-    height: 14, 
-    resizeMode: 'contain' 
+  optionIcon: {
+    width: 14,
+    height: 14,
+    resizeMode: 'contain'
   },
 
   /** CARD **/
@@ -327,9 +327,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     justifyContent: 'center',
   },
-  cardBase: { 
-    ...StyleSheet.absoluteFillObject, 
-    backgroundColor: '#8F3C09' 
+  cardBase: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#8F3C09'
   },
   cardOverlay: {
     position: 'absolute',
@@ -341,35 +341,35 @@ const styles = StyleSheet.create({
     opacity: 0.42,
     transform: [{ rotate: '-18deg' }],
   },
-  cardContent: { 
-    position: 'absolute', 
-    top: 20, 
-    left: 25, 
-    right: 25 
+  cardContent: {
+    position: 'absolute',
+    top: 20,
+    left: 25,
+    right: 25
   },
-  cardName: { 
-    color: '#fff', 
-    fontSize: width * 0.045, 
+  cardName: {
+    color: '#fff',
+    fontSize: width * 0.045,
     fontFamily: getFontFamily('Bold'),
     fontWeight: getFontWeight('Bold'),
   },
-  cardNumber: { 
-    color: '#fff', 
-    opacity: 0.9, 
-    marginTop: 4, 
+  cardNumber: {
+    color: '#fff',
+    opacity: 0.9,
+    marginTop: 4,
     fontFamily: getFontFamily('Regular'),
     fontWeight: getFontWeight('Regular'),
   },
-  balanceLabel: { 
-    color: '#fff', 
-    opacity: 0.9, 
-    marginTop: 18, 
+  balanceLabel: {
+    color: '#fff',
+    opacity: 0.9,
+    marginTop: 18,
     fontFamily: getFontFamily('Medium'),
     fontWeight: getFontWeight('Medium'),
   },
-  balanceRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 4,
     justifyContent: 'space-between',
   },
@@ -388,29 +388,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginRight: 0,
   },
-  bagIcon: { 
-    width: 16, 
-    height: 16, 
-    resizeMode: 'contain', 
-    marginRight: 6 
+  bagIcon: {
+    width: 16,
+    height: 16,
+    resizeMode: 'contain',
+    marginRight: 6
   },
-  topUpText: { 
-    color: '#000', 
-    fontSize: width * 0.035, 
+  topUpText: {
+    color: '#000',
+    fontSize: width * 0.035,
     fontFamily: getFontFamily('SemiBold'),
     fontWeight: getFontWeight('SemiBold'),
   },
-  cardLogos: { 
-    position: 'absolute', 
-    top: 18, 
-    right: 25, 
-    flexDirection: 'row', 
-    alignItems: 'center' 
+  cardLogos: {
+    position: 'absolute',
+    top: 18,
+    right: 25,
+    flexDirection: 'row',
+    alignItems: 'center'
   },
-  cardLogo: { 
-    width: 50, 
-    height: 50, 
-    resizeMode: 'contain' 
+  cardLogo: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain'
   },
 
   /** FILTER INDICATOR **/
@@ -426,23 +426,23 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: COLORS.primary,
   },
-  filterText: { 
-    color: '#000', 
-    fontSize: 14, 
+  filterText: {
+    color: '#000',
+    fontSize: 14,
     fontFamily: getFontFamily('SemiBold'),
     fontWeight: getFontWeight('SemiBold'),
   },
-  clearFilterText: { 
-    color: COLORS.primary, 
-    fontSize: 14, 
+  clearFilterText: {
+    color: COLORS.primary,
+    fontSize: 14,
     fontFamily: getFontFamily('Medium'),
     fontWeight: getFontWeight('Medium'),
   },
 
   /** TRANSACTION SECTION **/
-  transactionSection: { 
-    marginTop: 25, 
-    paddingHorizontal: 20 
+  transactionSection: {
+    marginTop: 25,
+    paddingHorizontal: 20
   },
   transactionHeader: {
     flexDirection: 'row',
@@ -450,15 +450,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
   },
-  transactionTitle: { 
-    fontSize: width * 0.042, 
+  transactionTitle: {
+    fontSize: width * 0.042,
     color: '#000',
     fontFamily: getFontFamily('Bold'),
     fontWeight: getFontWeight('Bold'),
   },
-  seeAll: { 
-    color: COLORS.primary, 
-    fontSize: width * 0.037, 
+  seeAll: {
+    color: COLORS.primary,
+    fontSize: width * 0.037,
     fontFamily: getFontFamily('Medium'),
     fontWeight: getFontWeight('Medium'),
   },
@@ -469,46 +469,46 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.6,
     borderColor: '#eee',
   },
-  foodImg: { 
-    width: 45, 
-    height: 45, 
-    borderRadius: 22.5, 
-    marginRight: 12 
+  foodImg: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    marginRight: 12
   },
-  foodTitle: { 
-    fontSize: width * 0.038, 
-    color: '#000', 
+  foodTitle: {
+    fontSize: width * 0.038,
+    color: '#000',
     fontFamily: getFontFamily('SemiBold'),
     fontWeight: getFontWeight('SemiBold'),
   },
-  foodTime: { 
-    color: '#888', 
-    fontSize: width * 0.032, 
+  foodTime: {
+    color: '#888',
+    fontSize: width * 0.032,
     marginTop: 2,
     fontFamily: getFontFamily('Medium'),
     fontWeight: getFontWeight('Medium'),
   },
-  foodAmount: { 
-    fontSize: width * 0.038, 
+  foodAmount: {
+    fontSize: width * 0.038,
     color: '#000',
     fontFamily: getFontFamily('Bold'),
     fontWeight: getFontWeight('Bold'),
   },
-  typeRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginTop: 2 
+  typeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2
   },
-  typeText: { 
-    color: '#888', 
-    fontSize: width * 0.032, 
+  typeText: {
+    color: '#888',
+    fontSize: width * 0.032,
     marginRight: 4,
     fontFamily: getFontFamily('Medium'),
     fontWeight: getFontWeight('Medium'),
   },
-  arrowIcon: { 
-    width: 12, 
-    height: 12, 
-    resizeMode: 'contain' 
+  arrowIcon: {
+    width: 12,
+    height: 12,
+    resizeMode: 'contain'
   },
 });

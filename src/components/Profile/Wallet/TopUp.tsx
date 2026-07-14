@@ -12,7 +12,6 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
-import RazorpayCheckout from 'react-native-razorpay';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../../../theme/colors';
@@ -134,55 +133,26 @@ const TopUp = () => {
       return;
     }
 
-    const amountInPaise = parseFloat(topupAmount) * 100;
+    // Demo: simulate successful top-up locally (no payment SDK)
+    const { date, time, dateTime } = getCurrentDateTime();
+    const newBalance = currentBalance + parseFloat(topupAmount);
 
-    const options = {
-      description: 'Wallet Top Up',
-      image: 'https://i.imgur.com/3g7nmJC.png',
-      currency: 'INR',
-      key: 'rzp_test_RB4DVzPPSyg8yG',
-      amount: amountInPaise.toString(),
-      name: 'Vinsta',
-      prefill: {
-        email: 'customer@vinsta.com',
-        contact: '1234567890',
-        name: 'Harshal Sharma',
-      },
-      theme: { color: COLORS.primary },
+    const transactionData = {
+      id: Date.now().toString(),
+      amount: topupAmount,
+      paymentId: `demo_pay_${Date.now()}`,
+      date: date,
+      time: time,
+      dateTime: dateTime,
+      oldBalance: currentBalance,
+      newBalance: newBalance,
+      status: 'Success',
     };
 
-    RazorpayCheckout.open(options)
-      .then(data => {
-        console.log('Payment Success:', data);
-
-        const { date, time, dateTime } = getCurrentDateTime();
-        const newBalance = currentBalance + parseFloat(topupAmount);
-
-        const transactionData = {
-          id: Date.now().toString(),
-          amount: topupAmount,
-          paymentId: data.razorpay_payment_id,
-          date: date,
-          time: time,
-          dateTime: dateTime,
-          oldBalance: currentBalance,
-          newBalance: newBalance,
-          status: 'Success',
-        };
-
-        setCurrentBalance(newBalance);
-        saveTopupHistory(transactionData);
-        showSuccessPopup(transactionData);
-        setTopupAmount('');
-      })
-      .catch(error => {
-        console.log('Razorpay Error:', error);
-        const errMsg =
-          error.description ||
-          error.error?.description ||
-          'Payment cancelled by user.';
-        alert(errMsg);
-      });
+    setCurrentBalance(newBalance);
+    saveTopupHistory(transactionData);
+    showSuccessPopup(transactionData);
+    setTopupAmount('');
   };
 
   const handleViewReceipt = (transaction: any) => {
@@ -190,16 +160,16 @@ const TopUp = () => {
   };
 
   const renderHistoryItem = ({ item }: any) => (
-    <View style={[styles.historyCard,{backgroundColor : theme.cardBackground,borderColor : theme.background}]}>
+    <View style={[styles.historyCard, { backgroundColor: theme.cardBackground, borderColor: theme.background }]}>
       <View style={styles.historyHeader}>
         <View style={styles.historyIcon}>
           <Image
             source={require('../../../assets/wallet.png')}
-            style={[styles.topupIconSmall,{tintColor : theme.background}]}
+            style={[styles.topupIconSmall, { tintColor: theme.background }]}
           />
         </View>
         <View style={styles.historyDetails}>
-          <Text style={[styles.historyTitle,{color : theme.text}]}>Wallet Top-Up</Text>
+          <Text style={[styles.historyTitle, { color: theme.text }]}>Wallet Top-Up</Text>
           <Text style={styles.historyDate}>{item.dateTime}</Text>
         </View>
         <View style={styles.historyRight}>
@@ -210,7 +180,7 @@ const TopUp = () => {
         </View>
       </View>
 
-      <View style={[styles.historyFooter,{borderTopColor : theme.background}]}>
+      <View style={[styles.historyFooter, { borderTopColor: theme.background }]}>
         <Text style={styles.paymentIdText}>
           Payment ID: {item.paymentId.substring(0, 20)}...
         </Text>
@@ -218,7 +188,7 @@ const TopUp = () => {
           style={styles.viewReceiptBtn}
           onPress={() => handleViewReceipt(item)}
         >
-          <Text style={[styles.viewReceiptText,{color : theme.background}]}>View Receipt</Text>
+          <Text style={[styles.viewReceiptText, { color: theme.background }]}>View Receipt</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -281,7 +251,7 @@ const TopUp = () => {
           <View style={[styles.inputWrapper, { backgroundColor: theme.cardBackground, borderColor: theme.background }]}>
             <Text style={[styles.currencySymbol, { color: theme.text }]}>₹</Text>
             <TextInput
-              style={[styles.amountInput,{color : theme.textSecondary}]}
+              style={[styles.amountInput, { color: theme.textSecondary }]}
               placeholder="0"
               placeholderTextColor={theme.textSecondary}
               keyboardType="number-pad"
@@ -335,31 +305,31 @@ const TopUp = () => {
 
           {/* Top Up Details */}
           {topupAmount && parseFloat(topupAmount) > 0 && (
-            <View style={[styles.detailsBox,{backgroundColor : theme.cardBackground,borderColor : theme.background}]}>
-              <Text style={[styles.detailsTitle,{color : theme.text}]}>Top-Up Summary</Text>
+            <View style={[styles.detailsBox, { backgroundColor: theme.cardBackground, borderColor: theme.background }]}>
+              <Text style={[styles.detailsTitle, { color: theme.text }]}>Top-Up Summary</Text>
 
               <View style={styles.detailRow}>
-                <Text style={[styles.detailLabel,{color : theme.text}]}>Top-up Amount</Text>
-                <Text style={[styles.detailValue,{color : theme.text}]}>₹ {topupAmount}</Text>
+                <Text style={[styles.detailLabel, { color: theme.text }]}>Top-up Amount</Text>
+                <Text style={[styles.detailValue, { color: theme.text }]}>₹ {topupAmount}</Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={[styles.detailLabel,{color : theme.text}]}>Processing Fee</Text>
+                <Text style={[styles.detailLabel, { color: theme.text }]}>Processing Fee</Text>
                 <Text style={[styles.detailValue, { color: COLORS.primary }]}>
                   Free
                 </Text>
               </View>
 
-              <View style={[styles.divider,{backgroundColor : theme.cardBackground}]} />
+              <View style={[styles.divider, { backgroundColor: theme.cardBackground }]} />
 
               <View style={styles.detailRow}>
-                <Text style={[styles.totalLabel,{color : theme.text}]}>Total Payable</Text>
-                <Text style={[styles.totalValue,,{color : theme.text}]}>₹ {topupAmount}</Text>
+                <Text style={[styles.totalLabel, { color: theme.text }]}>Total Payable</Text>
+                <Text style={[styles.totalValue, , { color: theme.text }]}>₹ {topupAmount}</Text>
               </View>
 
               <View style={[styles.detailRow, { marginTop: 8 }]}>
-                <Text style={[styles.detailLabel,{color : theme.text}]}>New Balance</Text>
-                <Text style={[styles.newBalanceValue,{color : theme.text}]}>
+                <Text style={[styles.detailLabel, { color: theme.text }]}>New Balance</Text>
+                <Text style={[styles.newBalanceValue, { color: theme.text }]}>
                   ₹{' '}
                   {(currentBalance + parseFloat(topupAmount)).toLocaleString()}
                 </Text>
@@ -371,7 +341,7 @@ const TopUp = () => {
         {/* Top-Up History */}
         {topupHistory.length > 0 && (
           <View style={styles.historySection}>
-            <Text style={[styles.historySectionTitle,{color:theme.text}]}>Top-Up History</Text>
+            <Text style={[styles.historySectionTitle, { color: theme.text }]}>Top-Up History</Text>
             {topupHistory.map((item, index) => (
               <View key={item.id || index}>{renderHistoryItem({ item })}</View>
             ))}
@@ -380,7 +350,7 @@ const TopUp = () => {
       </ScrollView>
 
       {/* Bottom Button */}
-      <View style={[styles.bottomSection,{backgroundColor : theme.cardBackground,borderTopColor : theme.background}]}>
+      <View style={[styles.bottomSection, { backgroundColor: theme.cardBackground, borderTopColor: theme.background }]}>
         <TouchableOpacity
           style={[
             styles.topupButton,
@@ -391,7 +361,7 @@ const TopUp = () => {
           disabled={!topupAmount || parseFloat(topupAmount) <= 0}
           activeOpacity={0.8}
         >
-          <Text style={[styles.topupButtonText,{color : theme.background}]}>
+          <Text style={[styles.topupButtonText, { color: theme.background }]}>
             {topupAmount && parseFloat(topupAmount) > 0
               ? `TOP UP ₹ ${topupAmount}`
               : 'ENTER AMOUNT TO PROCEED'}

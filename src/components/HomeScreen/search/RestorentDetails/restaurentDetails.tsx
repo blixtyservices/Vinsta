@@ -464,7 +464,7 @@ const RestaurentDetails: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           style={[
             styles.categorySlider,
-            isDarkMode || theme.mode === 'dark' 
+            isDarkMode || theme.mode === 'dark'
               ? { backgroundColor: theme.backgroundColor || '#000' }
               : { backgroundColor: '#FFF' }
           ]}
@@ -473,7 +473,7 @@ const RestaurentDetails: React.FC = () => {
         >
           {categories.map((cat, index) => {
             const selected = activeCategory === cat.name;
-            
+
             return (
               <TouchableOpacity
                 key={cat.name}
@@ -490,16 +490,16 @@ const RestaurentDetails: React.FC = () => {
                     style={styles.categoryIcon}
                     resizeMode="contain"
                   />
-                  
+
                   <Text style={[
                     styles.categoryText,
-                    selected 
+                    selected
                       ? { color: COLORS.primary }
                       : { color: isDarkMode || theme.mode === 'dark' ? '#AAA' : '#666' }
                   ]}>
                     {cat.name}
                   </Text>
-                  
+
                   {selected && (
                     <View style={styles.selectedIndicator} />
                   )}

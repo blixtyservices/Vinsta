@@ -84,7 +84,7 @@ const MyOrders = () => {
         setPastOrders(
           all.filter((o: any) => !ACTIVE_STATUSES.includes(o.status)).map(mapOrder)
         );
-      } catch {}
+      } catch { }
 
       try {
         const subRes = await subscriptionAPI.getMine();
@@ -95,7 +95,7 @@ const MyOrders = () => {
         setPreviousSubs(
           allSubs.filter((s: any) => s.status !== 'active').map((s: any) => mapSub(s, false, theme))
         );
-      } catch {}
+      } catch { }
 
       setLoading(false);
     };

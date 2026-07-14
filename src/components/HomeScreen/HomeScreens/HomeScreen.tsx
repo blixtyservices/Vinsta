@@ -581,7 +581,7 @@ const HomeScreen = () => {
                 hasActiveFilters={hasActiveFilters}
               />
             </View>
-            
+
             <VegToggleSwitch />
           </View>
         </View>

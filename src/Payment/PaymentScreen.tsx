@@ -15,7 +15,6 @@ import {
   Vibration,
 } from 'react-native';
 
-import RazorpayCheckout from 'react-native-razorpay';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../theme/colors';
@@ -47,38 +46,16 @@ const PaymentScreen = () => {
   };
 
   const handlePayment = () => {
-    const options = {
-      description: 'Vinsta Food Order Payment',
-      image: 'https://i.imgur.com/3g7nmJC.png',
-      currency: 'INR',
-      key: 'rzp_test_RB4DVzPPSyg8yG',
-      amount: '58000',
-      name: 'Vinsta',
-      prefill: {
-        email: 'testuser@vinsta.com',
-        contact: '9999999999',
-        name: 'Vinsta Customer',
-      },
-      theme: { color: COLORS.primary },
-    };
+    // Demo: simulate successful payment locally (no payment SDK)
+    vibrate(100);
+    setShowSuccessPopup(true);
 
-    RazorpayCheckout.open(options)
-      .then(data => {
-        vibrate(100);
-        setShowSuccessPopup(true);
-
-        setTimeout(() => {
-          setShowSuccessPopup(false);
-          navigation.navigate('PaymentSuccess', {
-            paymentId: data.razorpay_payment_id,
-          });
-        }, 2000);
-      })
-      .catch(error => {
-        let msg = error.description || 'Payment Cancelled.';
-        vibrate(50);
-        showPopup(msg);
+    setTimeout(() => {
+      setShowSuccessPopup(false);
+      navigation.navigate('PaymentSuccess', {
+        paymentId: `demo_pay_${Date.now()}`,
       });
+    }, 2000);
   };
 
   return (

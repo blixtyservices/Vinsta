@@ -1,0 +1,343 @@
+/**
+ * Static mock data for UI-only demo — no network requests.
+ */
+
+export const MOCK_USER_PROFILE = {
+  _id: 'user_demo_001',
+  name: 'Harshal Sharma',
+  phone: '9876543210',
+  email: 'demo@vinsta.com',
+  role: 'customer',
+  profileImage: undefined as string | undefined,
+  addresses: [
+    {
+      _id: 'addr_1',
+      label: 'Home',
+      address: '34/α/54 New Pachha Peth, Kamtha Nagar, Nagpur',
+      isDefault: true,
+    },
+    {
+      _id: 'addr_2',
+      label: 'Work',
+      address: '320 Koregaon Park Lane, opposite B.M.W. showroom, Indore M.P.',
+      isDefault: false,
+    },
+  ],
+};
+
+export const MOCK_RESTAURANTS = [
+  {
+    _id: 'rest_001',
+    name: 'Bistro Excellence',
+    imageUrl: null,
+    averageRating: 4.4,
+    estimatedDeliveryTime: '10-15 mins',
+    categories: ['Italian', 'Fast Food', 'Beverages'],
+    isVeg: true,
+  },
+  {
+    _id: 'rest_002',
+    name: 'Tokyo Sushi',
+    imageUrl: null,
+    averageRating: 4.7,
+    estimatedDeliveryTime: '20-25 mins',
+    categories: ['Japanese', 'Sushi', 'Asian'],
+    isVeg: false,
+  },
+  {
+    _id: 'rest_003',
+    name: 'Spice Garden',
+    imageUrl: null,
+    averageRating: 4.2,
+    estimatedDeliveryTime: '15-20 mins',
+    categories: ['Indian', 'Vegetarian', 'Spicy'],
+    isVeg: true,
+  },
+  {
+    _id: 'rest_004',
+    name: 'Burger Hub',
+    imageUrl: null,
+    averageRating: 4.0,
+    estimatedDeliveryTime: '10-12 mins',
+    categories: ['Fast Food', 'Burgers', 'American'],
+    isVeg: false,
+  },
+  {
+    _id: 'rest_005',
+    name: 'Dragon Palace',
+    imageUrl: null,
+    averageRating: 4.5,
+    estimatedDeliveryTime: '18-22 mins',
+    categories: ['Chinese', 'Asian', 'Noodles'],
+    isVeg: false,
+  },
+  {
+    _id: 'rest_006',
+    name: "Domino's Pizza",
+    imageUrl: null,
+    averageRating: 4.3,
+    estimatedDeliveryTime: '15-20 mins',
+    categories: ['Pizza', 'Italian', 'Fast Food'],
+    isVeg: true,
+  },
+];
+
+export const MOCK_FOOD_ITEMS = [
+  {
+    _id: 'menu_001',
+    name: 'Veg Cheese Burger',
+    price: 45.5,
+    originalPrice: 50.5,
+    preparationTime: '10-15 mins',
+    imageUrl: null,
+    description: 'Crispy veg patty with melted cheese and fresh veggies',
+    isVeg: true,
+    restaurantId: 'rest_001',
+  },
+  {
+    _id: 'menu_002',
+    name: 'Veg Delight Burger',
+    price: 45.5,
+    originalPrice: 50.5,
+    preparationTime: '10-15 mins',
+    imageUrl: null,
+    description: 'Garden-fresh veggies stacked in a soft bun',
+    isVeg: true,
+    restaurantId: 'rest_001',
+  },
+  {
+    _id: 'menu_003',
+    name: 'Garden Fresh Burger',
+    price: 45.5,
+    originalPrice: 50.5,
+    preparationTime: '10-15 mins',
+    imageUrl: null,
+    description: 'Fresh garden greens with special house sauce',
+    isVeg: true,
+    restaurantId: 'rest_003',
+  },
+  {
+    _id: 'menu_004',
+    name: 'Veggie Supreme',
+    price: 55.5,
+    originalPrice: 60.5,
+    preparationTime: '12-18 mins',
+    imageUrl: null,
+    description: 'Loaded veggie burger with premium toppings',
+    isVeg: true,
+    restaurantId: 'rest_003',
+  },
+  {
+    _id: 'menu_005',
+    name: 'Chicken Deluxe',
+    price: 55.5,
+    originalPrice: 60.5,
+    preparationTime: '10-15 mins',
+    imageUrl: null,
+    description: 'Juicy chicken patty with signature sauce',
+    isVeg: false,
+    restaurantId: 'rest_004',
+  },
+  {
+    _id: 'menu_006',
+    name: 'Beef Special',
+    price: 65.5,
+    originalPrice: 70.5,
+    preparationTime: '15-20 mins',
+    imageUrl: null,
+    description: 'Premium beef burger with cheddar',
+    isVeg: false,
+    restaurantId: 'rest_004',
+  },
+  {
+    _id: 'menu_007',
+    name: 'Mutton Classic',
+    price: 75.5,
+    originalPrice: 80.5,
+    preparationTime: '15-20 mins',
+    imageUrl: null,
+    description: 'Classic mutton burger with spices',
+    isVeg: false,
+    restaurantId: 'rest_002',
+  },
+  {
+    _id: 'menu_008',
+    name: 'Seafood Combo',
+    price: 85.5,
+    originalPrice: 90.5,
+    preparationTime: '18-22 mins',
+    imageUrl: null,
+    description: 'Fresh seafood combo meal',
+    isVeg: false,
+    restaurantId: 'rest_002',
+  },
+  {
+    _id: 'menu_009',
+    name: 'Margherita Pizza',
+    price: 199,
+    originalPrice: 249,
+    preparationTime: '15-20 mins',
+    imageUrl: null,
+    description: 'Classic mozzarella and tomato pizza',
+    isVeg: true,
+    restaurantId: 'rest_006',
+  },
+  {
+    _id: 'menu_010',
+    name: 'Pepperoni Pizza',
+    price: 299,
+    originalPrice: 349,
+    preparationTime: '15-20 mins',
+    imageUrl: null,
+    description: 'Loaded pepperoni with extra cheese',
+    isVeg: false,
+    restaurantId: 'rest_006',
+  },
+];
+
+export const MOCK_OFFERS = [
+  {
+    id: 'offer_001',
+    title: '50% OFF',
+    subtitle: 'On your first order',
+    code: 'VINSTA50',
+  },
+  {
+    id: 'offer_002',
+    title: 'Free Delivery',
+    subtitle: 'Orders above ₹199',
+    code: 'FREEDEL',
+  },
+];
+
+export const MOCK_ORDERS = [
+  {
+    _id: 'order_a1b2c3',
+    restaurant: { name: "Domino's Pizza", imageUrl: null },
+    items: [
+      { name: 'Margherita Pizza', quantity: 1, price: 199 },
+      { name: 'Veg Cheese Burger', quantity: 2, price: 45.5 },
+    ],
+    totalAmount: 340,
+    status: 'preparing',
+    createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+    estimatedDeliveryTime: '25 min',
+  },
+  {
+    _id: 'order_d4e5f6',
+    restaurant: { name: 'Burger Hub', imageUrl: null },
+    items: [{ name: 'Chicken Deluxe', quantity: 1, price: 55.5 }],
+    totalAmount: 105.5,
+    status: 'out_for_delivery',
+    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    estimatedDeliveryTime: '15 min',
+  },
+  {
+    _id: 'order_g7h8i9',
+    restaurant: { name: 'Spice Garden', imageUrl: null },
+    items: [
+      { name: 'Veggie Supreme', quantity: 1, price: 55.5 },
+      { name: 'Garden Fresh Burger', quantity: 1, price: 45.5 },
+    ],
+    totalAmount: 151,
+    status: 'delivered',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    estimatedDeliveryTime: '20 min',
+  },
+  {
+    _id: 'order_j0k1l2',
+    restaurant: { name: 'Tokyo Sushi', imageUrl: null },
+    items: [{ name: 'Seafood Combo', quantity: 1, price: 85.5 }],
+    totalAmount: 135.5,
+    status: 'cancelled',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    estimatedDeliveryTime: '22 min',
+  },
+];
+
+export const MOCK_WALLETS = {
+  balance: 2450.0,
+  user: { name: MOCK_USER_PROFILE.name, _id: MOCK_USER_PROFILE._id },
+};
+
+export const MOCK_TRANSACTIONS = [
+  {
+    _id: 'tx_001',
+    description: 'Top up wallet',
+    amount: 500,
+    type: 'credit',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: 'tx_002',
+    description: 'Order payment - Domino\'s Pizza',
+    amount: 340,
+    type: 'debit',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: 'tx_003',
+    description: 'Top up wallet',
+    amount: 1000,
+    type: 'credit',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: 'tx_004',
+    description: 'Order payment - Burger Hub',
+    amount: 105.5,
+    type: 'debit',
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: 'tx_005',
+    description: 'Referral bonus',
+    amount: 100,
+    type: 'credit',
+    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+export const MOCK_SUBSCRIPTIONS = [
+  {
+    _id: 'sub_001',
+    status: 'active',
+    restaurantId: { name: 'Spice Garden', _id: 'rest_003' },
+    planId: { name: 'Weekly Veg Thali', price: 599, duration: 'week' },
+    startDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: 'sub_002',
+    status: 'active',
+    restaurantId: { name: "Domino's Pizza", _id: 'rest_006' },
+    planId: { name: 'Monthly Pizza Plan', price: 1499, duration: 'month' },
+    startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: 'sub_003',
+    status: 'cancelled',
+    restaurantId: { name: 'Burger Hub', _id: 'rest_004' },
+    planId: { name: 'Weekly Burger Box', price: 449, duration: 'week' },
+    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(Date.now() - 23 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+export const MOCK_PLANS = [
+  {
+    _id: 'plan_001',
+    name: 'Weekly Veg Thali',
+    price: 599,
+    duration: 'week',
+    description: '7 days of fresh veg meals',
+  },
+  {
+    _id: 'plan_002',
+    name: 'Monthly Pizza Plan',
+    price: 1499,
+    duration: 'month',
+    description: '30 days of pizza combos',
+  },
+];
